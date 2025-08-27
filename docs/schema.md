@@ -1,73 +1,74 @@
 ```mermaid
 erDiagram
-  USERS {
-    string id_pk
-    string email_unique
-    string password
-    string name
-    string role
-    date created_at
-    date updated_at
-  }
+    USERS {
+        string id PK
+        string email UK
+        string password
+        string name
+        string role
+        datetime created_at
+        datetime updated_at
+    }
 
-  CASES {
-    string id_pk
-    string title
-    string description
-    string status
-    string beneficiary_id
-    int target_amount
-    date created_at
-    date updated_at
-  }
+    CASES {
+        string id PK
+        string title
+        string description
+        string status
+        string beneficiary_id FK
+        int    target_amount
+        datetime created_at
+        datetime updated_at
+    }
 
-  CASE_STATUS_AUDITS {
-    int id_pk
-    string case_id
-    string beneficiary_id
-    string previous_status
-    string new_status
-    string actor_user_id
-    string actor_role
-    string source
-    string request_id
-    string reason_code
-    string reason_detail
-    date created_at
-  }
+    CASE_STATUS_AUDITS {
+        int    id PK
+        string case_id
+        string beneficiary_id
+        string previous_status
+        string new_status
+        string actor_user_id
+        string actor_role
+        string source
+        string request_id
+        string reason_code
+        string reason_detail
+        datetime created_at
+    }
 
-  PAYMENTS {
-    string id_pk
-    string case_id
-    string donor_id
-    int amount
-    string currency
-    string status
-    string pg_provider
-    string pg_payment_id
-    string idempotency_key_unique
-    date created_at
-    date updated_at
-    date paid_at
-  }
+    PAYMENTS {
+        string id PK
+        string case_id FK
+        string donor_id FK
+        int    amount
+        string currency
+        string status
+        string pg_provider
+        string pg_payment_id
+        string idempotency_key UK
+        string reason_code
+        string reason_message
+        datetime created_at
+        datetime updated_at
+        datetime paid_at
+    }
 
-  PAYMENT_EVENTS {
-    int id_pk
-    string payment_id
-    string event_id_unique
-    string event_type
-    string raw_payload
-    date created_at
-  }
+    PAYMENT_EVENTS {
+        int    id PK
+        string payment_id FK
+        string origin
+        string event_id UK
+        string event_type
+        string raw_payload
+        datetime created_at
+    }
 
-  %% Relationships (actual FKs)
-  USERS ||--o{ CASES : "beneficiary_id"
-  USERS ||--o{ PAYMENTS : "donor_id"
-  CASES ||--o{ PAYMENTS : "case_id"
-  PAYMENTS ||--o{ PAYMENT_EVENTS : "payment_id"
-
-  %% Conceptual (no FK enforced)
-  CASES o|--o{ CASE_STATUS_AUDITS : "case_id (no FK)"
-  USERS o|--o{ CASE_STATUS_AUDITS : "beneficiary_id (no FK)"
-  USERS o|--o{ CASE_STATUS_AUDITS : "actor_user_id (no FK)"
+    %% 관계
+    USERS   ||--o{ CASES              : "beneficiary"
+    USERS   ||--o{ PAYMENTS           : "donor"
+    CASES   ||--o{ PAYMENTS           : "funds"
+    PAYMENTS||--o{ PAYMENT_EVENTS     : "logs"
+    CASES   ||--o{ CASE_STATUS_AUDITS : "status history"
+    USERS   ||--o{ CASE_STATUS_AUDITS : "actor"
+    USERS   ||--o{ CASE_STATUS_AUDITS : "beneficiary"
 ```

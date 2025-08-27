@@ -51,6 +51,8 @@ CREATE TABLE payments (
     pg_provider VARCHAR(50),
     pg_payment_id VARCHAR(100),
     idempotency_key VARCHAR(100) NOT NULL UNIQUE,
+    reason_code VARCHAR(50),
+    reason_message VARCHAR(250),
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL ${updated_at_on_update},
     paid_at TIMESTAMP NULL DEFAULT NULL,
@@ -61,6 +63,7 @@ CREATE TABLE payments (
 CREATE TABLE payment_events (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     payment_id CHAR(36) NOT NULL,
+    origin VARCHAR(20),
     event_id VARCHAR(100) NOT NULL UNIQUE,
     event_type VARCHAR(50) NOT NULL,
     raw_payload ${json_type} NOT NULL,
