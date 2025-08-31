@@ -32,7 +32,30 @@ class PaymentTest {
     }
 
     @Test
-    @DisplayName("CREATED에서 markPaid() 호출 시 PAID로 전환되고 paidAt와 pgPaymentId가 세팅된다")
+    @DisplayName("CREATED 상태에서 markRequiresAction() 호출 시 REQUIRES_ACTION으로 전환된다")
+    void should_transitionToRequiresAction_when_created() {
+        PgProvider provider = tossProvider(); // flowType=CLIENT_SDK
+        Payment payment = Payment.create("case-1", "donor-1", 1000L, Currency.KRW, "idem-123", provider);
+
+        payment.markRequiresAction();
+
+        assertThat(payment.isRequireAction()).isTrue();
+    }
+
+    @Test
+    @DisplayName("CREATED가 아닌 상태에서 markRequiresAction() 호출 시 예외가 발생한다")
+    void should_throwException_when_markRequiresActionOnNonCreated() {
+        PgProvider provider = tossProvider();
+        Payment payment = Payment.create("case-1", "donor-1", 1000L, Currency.KRW, "idem-123", provider);
+        payment.markFailedFromSystem("SYS_ERR", "시스템 오류");
+
+        assertThatThrownBy(payment::markRequiresAction)
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("CREATED");
+    }
+
+    @Test
+    @DisplayName("프로바이더 정책상 승인 가능한 상태에서 markPaid() 호출 시 PAID로 전환되고 pgPaymentId와 paidAt이 세팅된다")
     void should_transitionToPaid_when_markPaidOnCreated() {
         PgProvider provider = tossProvider();
         Payment payment = Payment.create("case-1", "donor-1", 1000L, Currency.KRW, "idem-123", provider);
@@ -84,39 +107,36 @@ class PaymentTest {
     }
 
     @Test
-    @DisplayName("CREATED가 아닐 때 markPaid() 호출 시 예외가 발생한다")
-    void should_throwException_when_markPaidOnNonCreated() {
-        PgProvider provider = tossProvider();
+    @DisplayName("현재 상태에서 이 프로바이더 정책상 markPaid()가 허용되지 않으면 예외가 발생한다")
+    void should_throwException_when_markPaid_notConfirmableByProviderPolicy() {
+        PgProvider provider = tossProvider(); // CLIENT_SDK → REQUIRES_ACTION 필요
         Payment payment = Payment.create("case-1", "donor-1", 1000L, Currency.KRW, "idem-123", provider);
-        payment.markFailedFromSystem("SYS_ERR", "시스템 오류");
+        payment.markFailedFromSystem("SYS_ERR", "시스템 오류"); // FAILED
 
         assertThatThrownBy(() -> payment.markPaid("pg-001"))
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessageContaining("CREATED");
+                .isInstanceOf(IllegalStateException.class);
     }
 
     @Test
-    @DisplayName("CREATED가 아닐 때 markFailedFromPg() 호출 시 예외가 발생한다")
-    void should_throwException_when_failedFromPgOnNonCreated() {
+    @DisplayName("현재 상태에서 이 프로바이더 정책상 markFailedFromPg()가 허용되지 않으면 예외가 발생한다")
+    void should_throwException_when_failedFromPg_notAllowedInCurrentState() {
         PgProvider provider = tossProvider();
         Payment p = Payment.create("c","d",1000L, Currency.KRW,"idem", provider);
         p.cancelByUser("USR_CANCEL","사용자 취소");
 
         assertThatThrownBy(() -> p.markFailedFromPg("PG_TIMEOUT","msg"))
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessageContaining("CREATED");
+                .isInstanceOf(IllegalStateException.class);
     }
 
     @Test
-    @DisplayName("CREATED가 아닐 때 markFailedFromSystem() 호출 시 예외가 발생한다")
-    void should_throwException_when_failedFromSystemOnNonCreated() {
+    @DisplayName("현재 상태에서 이 프로바이더 정책상 markFailedFromSystem()이 허용되지 않으면 예외가 발생한다")
+    void should_throwException_when_failedFromSystem_notAllowedInCurrentState() {
         PgProvider provider = tossProvider();
         Payment p = Payment.create("c","d",1000L, Currency.KRW,"idem", provider);
         p.markPaid("pg-1");
 
         assertThatThrownBy(() -> p.markFailedFromSystem("SYS_ERR","msg"))
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessageContaining("CREATED");
+                .isInstanceOf(IllegalStateException.class);
     }
 
     @Test
