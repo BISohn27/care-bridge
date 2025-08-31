@@ -2,5 +2,5 @@ package com.donation.carebridge.payment.domain;
 
 public enum PaymentStatus {
 
-    CREATED, PAID, FAILED, CANCELLED
+    CREATED, REQUIRES_ACTION, PAID, FAILED, CANCELLED
 }

@@ -94,6 +94,13 @@ public class Payment extends BaseTimeEntity {
         return new Payment(caseId, donorId, amount, currency, idempotencyKey, pgProvider);
     }
 
+    public void markRequiresAction() {
+        if (this.status != PaymentStatus.CREATED) {
+            throw new IllegalStateException("Only CREATED can transition to REQUIRES_ACTION, but was " + this.status);
+        }
+        this.status = PaymentStatus.REQUIRES_ACTION;
+    }
+
     public void markPaid(String pgPaymentId) {
         requireConfirmable();
         this.status = PaymentStatus.PAID;
@@ -128,6 +135,10 @@ public class Payment extends BaseTimeEntity {
 
     public boolean isCreate() {
         return status == PaymentStatus.CREATED;
+    }
+
+    public boolean isRequireAction() {
+        return status == PaymentStatus.REQUIRES_ACTION;
     }
 
     public boolean isPaid() {
