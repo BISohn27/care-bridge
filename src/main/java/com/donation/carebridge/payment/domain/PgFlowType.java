@@ -1,35 +1,41 @@
 package com.donation.carebridge.payment.domain;
 
-public enum PgFlowType {
-    CLIENT_SDK {
-        @Override public boolean isConfirmableFrom(PaymentStatus s) {
-            return s == PaymentStatus.REQUIRES_ACTION;
-        }
-        @Override public String error(PaymentStatus s) {
-            return "CLIENT_SDK requires REQUIRES_ACTION, but was " + s;
-        }
-    },
-    REDIRECT {
-        @Override public boolean isConfirmableFrom(PaymentStatus s) {
-            return s == PaymentStatus.REQUIRES_ACTION;
-        }
-        @Override public String error(PaymentStatus s) {
-            return "REDIRECT requires REQUIRES_ACTION, but was " + s;
-        }
-    },
-    SERVER_ONLY {
-        @Override public boolean isConfirmableFrom(PaymentStatus s) {
-            return s == PaymentStatus.CREATED || s == PaymentStatus.REQUIRES_ACTION;
-        }
-        @Override public String error(PaymentStatus s) {
-            return "SERVER_ONLY requires CREATED or REQUIRES_ACTION, but was " + s;
-        }
-    },
-    NONE {
-        @Override public boolean isConfirmableFrom(PaymentStatus s) { return false; }
-        @Override public String error(PaymentStatus s) { return "Flow NONE is not confirmable"; }
-    };
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.Set;
 
-    public abstract boolean isConfirmableFrom(PaymentStatus status);
-    public abstract String error(PaymentStatus status);
+public enum PgFlowType {
+    CLIENT_SDK(PaymentStatus.REQUIRES_ACTION),
+    REDIRECT(PaymentStatus.REQUIRES_ACTION),
+    SERVER_ONLY(PaymentStatus.CREATED, PaymentStatus.REQUIRES_ACTION),
+    NONE();
+
+    private final Set<PaymentStatus> confirmableStatuses;
+
+    PgFlowType(PaymentStatus... allowed) {
+        this.confirmableStatuses = unmodifiableEnumSet(allowed);
+    }
+
+    public boolean isConfirmableFrom(PaymentStatus status) {
+        return confirmableStatuses.contains(status);
+    }
+
+    public String error(PaymentStatus current) {
+        return String.format(
+                "Not confirmable: flow=%s, allowed=%s, current=%s",
+                name(),
+                confirmableStatuses,
+                current
+        );
+    }
+
+    private static Set<PaymentStatus> unmodifiableEnumSet(PaymentStatus... allowed) {
+        if (allowed == null || allowed.length == 0) {
+            return Collections.unmodifiableSet(EnumSet.noneOf(PaymentStatus.class));
+        }
+
+        EnumSet<PaymentStatus> set = EnumSet.of(allowed[0], Arrays.copyOfRange(allowed, 1, allowed.length));
+        return Collections.unmodifiableSet(set);
+    }
 }
