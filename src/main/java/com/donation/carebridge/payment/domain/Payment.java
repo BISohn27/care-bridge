@@ -6,7 +6,10 @@ import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import lombok.AccessLevel;
@@ -20,13 +23,11 @@ import java.util.UUID;
 @Table(
     name = "payments",
     uniqueConstraints = {
-        @UniqueConstraint(name = "uq_payments_idem", columnNames = {"idempotency_key"})
+        @UniqueConstraint(name = "uq_payments_pg",   columnNames = {"pg_provider_id", "pg_payment_id"})
     }
 )
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Payment extends BaseTimeEntity {
-
-    private static final String DEFAULT_PG = "toss";
 
     @Id
     @Column(name = "id", length = 36, nullable = false, updatable = false)
@@ -39,76 +40,90 @@ public class Payment extends BaseTimeEntity {
     private String donorId;
 
     @Column(name = "amount", nullable = false)
-    private int amount;
+    private long amount;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "currency", length = 3, nullable = false)
-    private String currency;
+    private Currency currency;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", length = 16, nullable = false)
     private PaymentStatus status;
 
-    @Embedded
-    private PgInfo pgInfo;
+    @Column(name = "idempotency_key", length = 36, nullable = false, unique = true)
+    private String idempotencyKey;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "pg_provider_id", nullable = false)
+    private PgProvider pgProvider;
+
+    @Column(name = "pg_payment_id", length = 100)
+    private String pgPaymentId;
 
     @Embedded
     private Reason reason;
-
-    @Column(name = "idempotency_key", length = 36, nullable = false, unique = true)
-    private String idempotencyKey;
 
     @Getter
     @Column(name = "paid_at")
     private LocalDateTime paidAt;
 
-    private Payment(String caseId, String donorId, int amount, String currency, String idempotencyKey) {
+    private Payment(
+            String caseId,
+            String donorId,
+            long amount,
+            Currency currency,
+            String idempotencyKey,
+            PgProvider pgProvider) {
         this.id = UUID.randomUUID().toString();
         this.caseId = caseId;
         this.donorId = donorId;
         this.amount = amount;
         this.currency = currency;
         this.status = PaymentStatus.CREATED;
-        this.pgInfo = PgInfo.initial(DEFAULT_PG);
         this.idempotencyKey = idempotencyKey;
+        this.pgProvider = pgProvider;
     }
 
-    public static Payment create(String caseId, String donorId, int amount, String currency, String idempotencyKey) {
-        return new Payment(caseId, donorId, amount, currency, idempotencyKey);
+    public static Payment create(
+            String caseId,
+            String donorId,
+            long amount,
+            Currency currency,
+            String idempotencyKey,
+            PgProvider pgProvider) {
+        return new Payment(caseId, donorId, amount, currency, idempotencyKey, pgProvider);
     }
 
     public void markPaid(String pgPaymentId) {
-        requireCreated();
+        requireConfirmable();
         this.status = PaymentStatus.PAID;
-        this.pgInfo = this.pgInfo.approved(pgPaymentId);
+        this.pgPaymentId = pgPaymentId;
         this.paidAt = LocalDateTime.now();
-        onUpdate();
     }
 
-    private void requireCreated() {
-        if (this.status != PaymentStatus.CREATED) {
-            throw new IllegalStateException("Only CREATED can transition");
+    private void requireConfirmable() {
+        if (pgProvider == null) {
+            throw new IllegalStateException("PG provider is not set");
         }
+        pgProvider.assertConfirmable(this.status);
     }
 
     public void markFailedFromPg(String pgCode, String pgMessage) {
-        requireCreated();
+        requireConfirmable();
         this.status = PaymentStatus.FAILED;
         this.reason = Reason.pg(pgCode, pgMessage);
-        onUpdate();
     }
 
     public void markFailedFromSystem(String code, String message) {
-        requireCreated();
+        requireConfirmable();
         this.status = PaymentStatus.FAILED;
         this.reason = Reason.system(code, message);
-        onUpdate();
     }
 
     public void cancelByUser(String code, String message) {
-        requireCreated();
+        requireConfirmable();
         this.status = PaymentStatus.CANCELLED;
         this.reason = Reason.user(code, message);
-        onUpdate();
     }
 
     public boolean isCreate() {
@@ -135,11 +150,11 @@ public class Payment extends BaseTimeEntity {
         return reason == null ? null : reason.getMessage();
     }
 
-    public String getPgProvider() {
-        return pgInfo.getProvider();
+    public PgProviderCode getPgProvider() {
+        return pgProvider.getCode();
     }
 
     public String getPgPaymentId() {
-        return pgInfo.getPaymentId();
+        return pgPaymentId;
     }
 }
