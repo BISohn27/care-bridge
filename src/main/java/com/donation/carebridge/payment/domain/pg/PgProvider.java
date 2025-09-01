@@ -1,5 +1,6 @@
-package com.donation.carebridge.payment.domain;
+package com.donation.carebridge.payment.domain.pg;
 
+import com.donation.carebridge.payment.domain.PaymentStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -20,7 +21,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
-class PgProvider {
+public class PgProvider {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

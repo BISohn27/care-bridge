@@ -1,6 +1,8 @@
 package com.donation.carebridge.payment.domain;
 
 import com.donation.carebridge.common.domain.BaseTimeEntity;
+import com.donation.carebridge.payment.domain.pg.PgProvider;
+import com.donation.carebridge.payment.domain.pg.PgProviderCode;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;

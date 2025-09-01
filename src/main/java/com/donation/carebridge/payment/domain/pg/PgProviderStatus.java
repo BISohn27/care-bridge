@@ -1,4 +1,4 @@
-package com.donation.carebridge.payment.domain;
+package com.donation.carebridge.payment.domain.pg;
 
 public enum PgProviderStatus {
 

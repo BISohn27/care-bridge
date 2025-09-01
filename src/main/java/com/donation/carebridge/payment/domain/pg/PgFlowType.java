@@ -1,4 +1,6 @@
-package com.donation.carebridge.payment.domain;
+package com.donation.carebridge.payment.domain.pg;
+
+import com.donation.carebridge.payment.domain.PaymentStatus;
 
 import java.util.Arrays;
 import java.util.Collections;
