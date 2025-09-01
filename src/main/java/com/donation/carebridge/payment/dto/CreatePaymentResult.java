@@ -1,4 +1,4 @@
-package com.donation.carebridge.payment.application;
+package com.donation.carebridge.payment.dto;
 
 import com.donation.carebridge.payment.domain.PaymentStatus;
 

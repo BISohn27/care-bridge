@@ -1,6 +1,6 @@
 package com.donation.carebridge.payment.infra;
 
-import com.donation.carebridge.payment.application.CreatePaymentResult;
+import com.donation.carebridge.payment.dto.CreatePaymentResult;
 import com.donation.carebridge.payment.application.IdempotencyStore;
 import org.springframework.stereotype.Repository;
 
