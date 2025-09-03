@@ -1,6 +1,6 @@
 package com.donation.carebridge.payment.domain.pg;
 
-public enum PgProviderStatus {
+public enum PgStatus {
 
     ACTIVE, INACTIVE
 }

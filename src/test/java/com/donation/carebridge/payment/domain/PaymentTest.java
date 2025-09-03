@@ -3,9 +3,11 @@ package com.donation.carebridge.payment.domain;
 import com.donation.carebridge.payment.domain.pg.PgFlowType;
 import com.donation.carebridge.payment.domain.pg.PgProvider;
 import com.donation.carebridge.payment.domain.pg.PgProviderCode;
-import com.donation.carebridge.payment.domain.pg.PgProviderStatus;
+import com.donation.carebridge.payment.domain.pg.PgStatus;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+
+import java.util.Collections;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -17,8 +19,9 @@ class PaymentTest {
                 null,
                 PgProviderCode.TOSS,
                 "Toss Payments",
-                PgProviderStatus.ACTIVE,
-                PgFlowType.SERVER_ONLY
+                PgStatus.ACTIVE,
+                PgFlowType.SERVER_ONLY,
+                Collections.emptyList()
         );
     }
 

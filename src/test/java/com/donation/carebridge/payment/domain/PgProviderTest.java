@@ -3,7 +3,7 @@ package com.donation.carebridge.payment.domain;
 import com.donation.carebridge.payment.domain.pg.PgFlowType;
 import com.donation.carebridge.payment.domain.pg.PgProvider;
 import com.donation.carebridge.payment.domain.pg.PgProviderCode;
-import com.donation.carebridge.payment.domain.pg.PgProviderStatus;
+import com.donation.carebridge.payment.domain.pg.PgStatus;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -17,7 +17,7 @@ class PgProviderTest {
         return PgProvider.builder()
                 .code(PgProviderCode.TOSS)              // 실제 코드
                 .name("CLIENT_SDK")
-                .status(PgProviderStatus.ACTIVE)
+                .status(PgStatus.ACTIVE)
                 .flowType(PgFlowType.CLIENT_SDK)
                 .build();
     }
@@ -26,7 +26,7 @@ class PgProviderTest {
         return PgProvider.builder()
                 .code(PgProviderCode.TOSS)
                 .name("SERVER_ONLY")
-                .status(PgProviderStatus.ACTIVE)
+                .status(PgStatus.ACTIVE)
                 .flowType(PgFlowType.SERVER_ONLY)
                 .build();
     }
@@ -35,7 +35,7 @@ class PgProviderTest {
         return PgProvider.builder()
                 .code(PgProviderCode.TOSS)
                 .name("NONE")
-                .status(PgProviderStatus.ACTIVE)
+                .status(PgStatus.ACTIVE)
                 .flowType(PgFlowType.NONE)
                 .build();
     }
