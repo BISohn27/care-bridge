@@ -19,3 +19,10 @@ spring:
     console:
       enabled: true
       path: /h2-console
+
+app:
+  payment:
+    url:
+      success: "http://localhost:8080/payments/success"
+      fail: "http://localhost:8080/payments/fail"
+      cancel: "http://localhost:8080/payments/cancel"
