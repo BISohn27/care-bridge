@@ -31,7 +31,7 @@ import java.util.UUID;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Payment extends BaseTimeEntity {
 
-    @Id
+    @Id @Getter
     @Column(name = "id", length = 36, nullable = false, updatable = false)
     private String id;
 
