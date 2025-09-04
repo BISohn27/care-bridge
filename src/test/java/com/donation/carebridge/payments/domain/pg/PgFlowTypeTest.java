@@ -1,6 +1,6 @@
-package com.donation.carebridge.payment.domain;
+package com.donation.carebridge.payments.domain.pg;
 
-import com.donation.carebridge.payment.domain.pg.PgFlowType;
+import com.donation.carebridge.payments.domain.payment.PaymentStatus;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
