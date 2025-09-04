@@ -1,5 +1,6 @@
 package com.donation.carebridge.payments.application.payment;
 
+import com.donation.carebridge.payments.application.pg.PgProviderService;
 import com.donation.carebridge.payments.domain.payment.Payment;
 import com.donation.carebridge.payments.domain.payment.PaymentExecutor;
 import com.donation.carebridge.payments.domain.payment.PaymentRepository;
@@ -30,7 +31,7 @@ public class PaymentService {
     private final PaymentUrlProperties paymentUrlProperties;
     private final PgRouter pgRouter;
     private final IdempotencyStore<CreatePaymentResult> createIdempotencyStore;
-    private final PgProviderRepository pgProviderRepository;
+    private final PgProviderService pgProviderService;
     private final PaymentRepository paymentRepository;
     private final PaymentExecutor paymentExecutor;
 
@@ -51,8 +52,7 @@ public class PaymentService {
                 createRequest.currency(),
                 createRequest.amount());
 
-        PgProvider pgProvider =
-                pgProviderRepository.findByCodeAndAccountStatus(selection.pgProviderCode(), selection.env());
+        PgProvider pgProvider = pgProviderService.getProvider(selection.pgProviderCode(), selection.env());
 
         Payment created = Payment.create(
                 createRequest.caseId(),

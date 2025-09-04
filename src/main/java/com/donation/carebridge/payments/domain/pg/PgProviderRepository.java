@@ -1,6 +1,8 @@
 package com.donation.carebridge.payments.domain.pg;
 
+import java.util.Optional;
+
 public interface PgProviderRepository {
 
-    PgProvider findByCodeAndAccountStatus(PgProviderCode pgProviderCode, PgEnvironment pgEnvironment);
+    Optional<PgProvider> findByCodeAndAccountStatus(PgProviderCode pgProviderCode, PgEnvironment pgEnvironment);
 }
