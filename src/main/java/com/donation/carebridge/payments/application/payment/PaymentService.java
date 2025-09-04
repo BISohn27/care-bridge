@@ -1,18 +1,16 @@
 package com.donation.carebridge.payments.application.payment;
 
 import com.donation.carebridge.payments.application.pg.PgProviderService;
+import com.donation.carebridge.payments.config.payment.PaymentUrlProperties;
 import com.donation.carebridge.payments.domain.payment.Payment;
-import com.donation.carebridge.payments.domain.payment.PaymentExecutor;
 import com.donation.carebridge.payments.domain.payment.PaymentRepository;
 import com.donation.carebridge.payments.domain.payment.PaymentStatus;
 import com.donation.carebridge.payments.domain.pg.PgAccount;
 import com.donation.carebridge.payments.domain.pg.PgProvider;
-import com.donation.carebridge.payments.domain.pg.PgProviderRepository;
 import com.donation.carebridge.payments.dto.payment.CreatePaymentCommand;
 import com.donation.carebridge.payments.dto.payment.CreatePaymentRequest;
 import com.donation.carebridge.payments.dto.payment.CreatePaymentResult;
 import com.donation.carebridge.payments.dto.payment.NextAction;
-import com.donation.carebridge.payments.config.payment.PaymentUrlProperties;
 import com.donation.carebridge.payments.dto.payment.ProviderContext;
 import com.donation.carebridge.payments.dto.payment.ProviderSelection;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +18,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 import java.util.Optional;
 
 @Slf4j
@@ -33,7 +30,7 @@ public class PaymentService {
     private final IdempotencyStore<CreatePaymentResult> createIdempotencyStore;
     private final PgProviderService pgProviderService;
     private final PaymentRepository paymentRepository;
-    private final PaymentExecutor paymentExecutor;
+    private final PaymentExecutorRegistry paymentExecutorRegistry;
 
     @Transactional
     public CreatePaymentResult create(CreatePaymentRequest createRequest) {
@@ -64,11 +61,13 @@ public class PaymentService {
 
         paymentRepository.save(created);
 
-        NextAction nextAction = paymentExecutor.prepareCreateSession(
-                getCreatePaymentCommand(created.getId(), createRequest),
-                getProviderContext(pgProvider.getAccounts()));
+        NextAction nextAction = paymentExecutorRegistry.get(pgProvider.getCode())
+                .prepareCreateSession(
+                        getCreatePaymentCommand(created.getId(), createRequest),
+                        getProviderContext(pgProvider));
 
-        CreatePaymentResult createPaymentResult = new CreatePaymentResult(created.getId(), PaymentStatus.CREATED, nextAction);
+        CreatePaymentResult createPaymentResult = new CreatePaymentResult(
+                created.getId(), PaymentStatus.CREATED, nextAction);
         createIdempotencyStore.save(createRequest.idempotencyKey(), createPaymentResult);
         return createPaymentResult;
     }
@@ -86,8 +85,12 @@ public class PaymentService {
         );
     }
 
-    private ProviderContext getProviderContext(List<PgAccount> pgAccounts) {
-        PgAccount pgAccount = pgAccounts.get(0);
-        return new ProviderContext(pgAccount.getClientId(), pgAccount.getApiKeyEncrypted(), pgAccount.getEnvironment());
+    private ProviderContext getProviderContext(PgProvider pgProvider) {
+        PgAccount pgAccount = pgProvider.getAccounts().get(0);
+        return new ProviderContext(
+                pgProvider.getFlowType(),
+                pgAccount.getClientId(),
+                pgAccount.getApiKeyEncrypted(),
+                pgAccount.getEnvironment());
     }
 }
