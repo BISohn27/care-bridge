@@ -10,7 +10,7 @@ import com.donation.carebridge.payments.domain.pg.PgProvider;
 import com.donation.carebridge.payments.dto.payment.CreatePaymentCommand;
 import com.donation.carebridge.payments.dto.payment.CreatePaymentRequest;
 import com.donation.carebridge.payments.dto.payment.CreatePaymentResult;
-import com.donation.carebridge.payments.dto.payment.NextAction;
+import com.donation.carebridge.payments.dto.payment.PaymentExecutionResult;
 import com.donation.carebridge.payments.dto.payment.ProviderContext;
 import com.donation.carebridge.payments.dto.payment.ProviderSelection;
 import lombok.RequiredArgsConstructor;
@@ -61,13 +61,13 @@ public class PaymentService {
 
         paymentRepository.save(created);
 
-        NextAction nextAction = paymentExecutorRegistry.get(pgProvider.getCode())
+        PaymentExecutionResult executionResult = paymentExecutorRegistry.get(pgProvider.getCode())
                 .prepareCreateSession(
                         getCreatePaymentCommand(created.getId(), createRequest),
                         getProviderContext(pgProvider));
 
         CreatePaymentResult createPaymentResult = new CreatePaymentResult(
-                created.getId(), PaymentStatus.CREATED, nextAction);
+                created.getId(), PaymentStatus.CREATED, executionResult.nextAction());
         createIdempotencyStore.save(createRequest.idempotencyKey(), createPaymentResult);
         return createPaymentResult;
     }
