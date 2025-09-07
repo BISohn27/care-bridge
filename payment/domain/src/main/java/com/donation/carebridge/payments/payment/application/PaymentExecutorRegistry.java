@@ -1,6 +1,6 @@
 package com.donation.carebridge.payments.payment.application;
 
-import com.donation.carebridge.payments.payment.model.PaymentExecutor;
+import com.donation.carebridge.payments.payment.out.PaymentExecutor;
 import com.donation.carebridge.payments.pg.model.PgProviderCode;
 import org.springframework.stereotype.Component;
 

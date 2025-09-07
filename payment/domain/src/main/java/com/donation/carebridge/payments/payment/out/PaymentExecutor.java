@@ -1,4 +1,4 @@
-package com.donation.carebridge.payments.payment.model;
+package com.donation.carebridge.payments.payment.out;
 
 import com.donation.carebridge.payments.payment.dto.CreatePaymentCommand;
 import com.donation.carebridge.payments.payment.dto.PaymentExecutionResult;

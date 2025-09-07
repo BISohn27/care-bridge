@@ -4,7 +4,7 @@ import com.donation.carebridge.payments.payment.dto.CreatePaymentCommand;
 import com.donation.carebridge.payments.payment.dto.NextAction;
 import com.donation.carebridge.payments.payment.dto.PaymentExecutionResult;
 import com.donation.carebridge.payments.payment.dto.ProviderContext;
-import com.donation.carebridge.payments.payment.model.PaymentExecutor;
+import com.donation.carebridge.payments.payment.out.PaymentExecutor;
 import com.donation.carebridge.payments.pg.model.PgProviderCode;
 import org.springframework.stereotype.Component;
 

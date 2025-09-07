@@ -1,5 +1,6 @@
 package com.donation.carebridge.payments.payment.application;
 
+import com.donation.carebridge.payments.payment.annotation.IdempotencyCheck;
 import com.donation.carebridge.payments.payment.config.PaymentUrlProperties;
 import com.donation.carebridge.payments.payment.dto.CreatePaymentCommand;
 import com.donation.carebridge.payments.payment.dto.CreatePaymentRequest;
@@ -9,8 +10,9 @@ import com.donation.carebridge.payments.payment.dto.ProviderContext;
 import com.donation.carebridge.payments.payment.dto.ProviderSelection;
 import com.donation.carebridge.payments.payment.model.Payment;
 import com.donation.carebridge.payments.payment.model.PaymentEvent;
-import com.donation.carebridge.payments.payment.model.PaymentRepository;
 import com.donation.carebridge.payments.payment.model.PaymentStatus;
+import com.donation.carebridge.payments.payment.out.PaymentEventRepository;
+import com.donation.carebridge.payments.payment.out.PaymentRepository;
 import com.donation.carebridge.payments.pg.application.PgProviderService;
 import com.donation.carebridge.payments.pg.model.PgAccount;
 import com.donation.carebridge.payments.pg.model.PgProvider;
@@ -19,8 +21,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Optional;
-
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -28,22 +28,14 @@ public class PaymentService {
 
     private final PaymentUrlProperties paymentUrlProperties;
     private final PgRouter pgRouter;
-    private final IdempotencyStore<CreatePaymentResult> createIdempotencyStore;
     private final PgProviderService pgProviderService;
-    private final PaymentRepository paymentRepository;
     private final PaymentExecutorRegistry paymentExecutorRegistry;
-    // 레디스 aop annotation
-    @Transactional
-    public CreatePaymentResult create(CreatePaymentRequest createRequest) {
-        Optional<CreatePaymentResult> foundByIdempotencyKey =
-                createIdempotencyStore.findByKey(createRequest.idempotencyKey());
+    private final PaymentRepository paymentRepository;
+    private final PaymentEventRepository paymentEventRepository;
 
-        if (foundByIdempotencyKey.isPresent()) {
-            var result = foundByIdempotencyKey.get();
-            log.info("Idempotency key [{}] hit. Returning existing paymentId={}",
-                    createRequest.idempotencyKey(), result.paymentId());
-            return result;
-        }
+    @Transactional
+    @IdempotencyCheck(prefix = "payment-create")
+    public CreatePaymentResult create(CreatePaymentRequest createRequest) {
 
         ProviderSelection selection = pgRouter.resolve(createRequest.pgProviderCode(),
                 createRequest.paymentMethod(),
@@ -69,9 +61,9 @@ public class PaymentService {
 
         CreatePaymentResult createPaymentResult = new CreatePaymentResult(
                 created.getId(), PaymentStatus.CREATED, executionResult.nextAction());
-        createIdempotencyStore.save(createRequest.idempotencyKey(), createPaymentResult);
-        //리스너 업데이트
+
         PaymentEvent createEvent = PaymentEvent.create(created.getId(), executionResult.rawPayload());
+        paymentEventRepository.save(createEvent);
 
         return createPaymentResult;
     }

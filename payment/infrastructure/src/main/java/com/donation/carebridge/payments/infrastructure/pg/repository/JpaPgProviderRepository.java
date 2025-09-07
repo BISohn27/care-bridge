@@ -3,7 +3,7 @@ package com.donation.carebridge.payments.infrastructure.pg.repository;
 import com.donation.carebridge.payments.pg.model.PgEnvironment;
 import com.donation.carebridge.payments.pg.model.PgProvider;
 import com.donation.carebridge.payments.pg.model.PgProviderCode;
-import com.donation.carebridge.payments.pg.model.PgProviderRepository;
+import com.donation.carebridge.payments.pg.out.PgProviderRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
