@@ -70,8 +70,10 @@ CREATE TABLE payment_events (
     origin VARCHAR(20),
     event_id VARCHAR(100) NOT NULL UNIQUE,
     event_type VARCHAR(50) NOT NULL,
+    is_published BOOLEAN NOT NULL DEFAULT FALSE,
     raw_payload ${json_type} NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT fk_payment FOREIGN KEY (payment_id) REFERENCES payments(id) ON DELETE CASCADE
 ) ${engine} ${charset};
 
