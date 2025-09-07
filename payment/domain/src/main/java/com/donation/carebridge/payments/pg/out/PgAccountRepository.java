@@ -1,5 +1,7 @@
-package com.donation.carebridge.payments.pg.model;
+package com.donation.carebridge.payments.pg.out;
 
+import com.donation.carebridge.payments.pg.model.PgAccount;
+import com.donation.carebridge.payments.pg.model.PgEnvironment;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
