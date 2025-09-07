@@ -1,5 +1,6 @@
 package com.donation.carebridge.payments.payment.dto;
 
+import com.donation.carebridge.payments.payment.model.IdempotencyKeyed;
 import com.donation.carebridge.payments.payment.model.Currency;
 import com.donation.carebridge.payments.pg.model.PgProviderCode;
 
@@ -10,5 +11,5 @@ public record CreatePaymentRequest(
     long amount,
     PgProviderCode pgProviderCode,
     PaymentMethod paymentMethod,
-    String idempotencyKey) {
+    String idempotencyKey) implements IdempotencyKeyed {
 }
