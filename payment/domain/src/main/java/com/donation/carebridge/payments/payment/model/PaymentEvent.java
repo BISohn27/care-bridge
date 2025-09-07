@@ -44,6 +44,9 @@ public class PaymentEvent {
     @Column(name = "raw_payload", nullable = false, columnDefinition = "TEXT")
     private String rawPayload;
 
+    @Column(name = "is_published", nullable = false)
+    private Boolean isPublished = false;
+
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -64,5 +67,9 @@ public class PaymentEvent {
                 PaymentEventType.CREATED,
                 rawPayload
         );
+    }
+
+    public void markAsPublished() {
+        isPublished = true;
     }
 }

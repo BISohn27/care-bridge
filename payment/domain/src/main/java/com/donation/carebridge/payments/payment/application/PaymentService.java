@@ -8,6 +8,7 @@ import com.donation.carebridge.payments.payment.dto.CreatePaymentResult;
 import com.donation.carebridge.payments.payment.dto.PaymentExecutionResult;
 import com.donation.carebridge.payments.payment.dto.ProviderContext;
 import com.donation.carebridge.payments.payment.dto.ProviderSelection;
+import com.donation.carebridge.payments.payment.event.PaymentEventPublished;
 import com.donation.carebridge.payments.payment.model.Payment;
 import com.donation.carebridge.payments.payment.model.PaymentEvent;
 import com.donation.carebridge.payments.payment.model.PaymentStatus;
@@ -18,6 +19,7 @@ import com.donation.carebridge.payments.pg.model.PgAccount;
 import com.donation.carebridge.payments.pg.model.PgProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,6 +34,7 @@ public class PaymentService {
     private final PaymentExecutorRegistry paymentExecutorRegistry;
     private final PaymentRepository paymentRepository;
     private final PaymentEventRepository paymentEventRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     @IdempotencyCheck(prefix = "payment-create")
@@ -64,6 +67,7 @@ public class PaymentService {
 
         PaymentEvent createEvent = PaymentEvent.create(created.getId(), executionResult.rawPayload());
         paymentEventRepository.save(createEvent);
+        eventPublisher.publishEvent(PaymentEventPublished.from(createEvent));
 
         return createPaymentResult;
     }
