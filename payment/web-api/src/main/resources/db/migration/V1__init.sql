@@ -40,6 +40,27 @@ CREATE TABLE case_status_audits (
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ${engine} ${charset};
 
+CREATE TABLE pg_providers (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,      -- 시스템 아이디
+    code VARCHAR(50) NOT NULL UNIQUE,          -- 예: 'toss', 'stripe', 'inicis'
+    name VARCHAR(100) NOT NULL,                -- 표시용 이름
+    status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE', -- ACTIVE / INACTIVE
+    flow_type VARCHAR(20) NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ${engine} ${charset};
+
+CREATE TABLE pg_accounts (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    provider_id BIGINT NOT NULL,               -- FK → pg_providers.id
+    client_id VARCHAR(100) NOT NULL,
+    api_key_encrypted VARCHAR(500) NOT NULL,   -- 암호화된 API 키
+    environment VARCHAR(20) NOT NULL,          -- LIVE / TEST
+    status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE',
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT fk_pg_accounts_provider FOREIGN KEY (provider_id) REFERENCES pg_providers(id)
+) ${engine} ${charset};
 
 CREATE TABLE payments (
     id CHAR(36) NOT NULL PRIMARY KEY,
@@ -62,8 +83,6 @@ CREATE TABLE payments (
     UNIQUE KEY uq_payments_pg (pg_provider_id, pg_payment_id)
 ) ${engine} ${charset};
 
-ALTER TABLE payments ADD UNIQUE KEY uq_payments_pg (pg_provider, pg_payment_id);
-
 CREATE TABLE payment_events (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     payment_id CHAR(36) NOT NULL,
@@ -75,26 +94,4 @@ CREATE TABLE payment_events (
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT fk_payment FOREIGN KEY (payment_id) REFERENCES payments(id) ON DELETE CASCADE
-) ${engine} ${charset};
-
-CREATE TABLE pg_providers (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,      -- 시스템 아이디
-    code VARCHAR(50) NOT NULL UNIQUE,          -- 예: 'toss', 'stripe', 'inicis'
-    name VARCHAR(100) NOT NULL,                -- 표시용 이름
-    status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE', -- ACTIVE / INACTIVE
-    flow_type VARCHAR(20) NOT NULL,
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-) ${engine} ${charset};
-
-CREATE TABLE pg_accounts (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    provider_id BIGINT NOT NULL,               -- FK → pg_providers.id
-    client_id VARCHAR(100) NOT NULL,
-    api_key_encrypted VARCHAR(500) NOT NULL,   -- 암호화된 API 키
-    environment VARCHAR(20) NOT NULL,          -- LIVE / TEST
-    status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE',
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    CONSTRAINT fk_pg_accounts_provider FOREIGN KEY (provider_id) REFERENCES pg_providers(id)
 ) ${engine} ${charset};
