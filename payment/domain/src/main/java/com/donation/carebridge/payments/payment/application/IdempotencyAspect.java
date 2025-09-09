@@ -19,9 +19,6 @@ import java.util.stream.Stream;
 @RequiredArgsConstructor
 public class IdempotencyAspect {
 
-    private static final String PROCESS = "PROCESS";
-    private static final String COMPLETE = "COMPLETE";
-
     private final IdempotencyRepository idempotencyRepository;
 
     @Around("@annotation(idempotencyCheck)")
