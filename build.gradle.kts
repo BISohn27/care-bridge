@@ -69,3 +69,13 @@ configureByLabels("library") {
         enabled = true
     }
 }
+
+configureByLabels("test-logging") {
+    dependencies {
+        val implementation by configurations
+        val testRuntimeOnly by configurations
+
+        implementation("org.slf4j:slf4j-api")
+        testRuntimeOnly("ch.qos.logback:logback-classic")
+    }
+}
