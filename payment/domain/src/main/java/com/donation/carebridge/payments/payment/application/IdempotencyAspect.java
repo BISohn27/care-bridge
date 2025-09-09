@@ -2,16 +2,15 @@ package com.donation.carebridge.payments.payment.application;
 
 import com.donation.carebridge.payments.payment.annotation.IdempotencyCheck;
 import com.donation.carebridge.payments.payment.model.IdempotencyKeyed;
+import com.donation.carebridge.payments.payment.out.IdempotencyRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
-import java.time.Duration;
 import java.util.stream.Stream;
 
 @Slf4j
@@ -23,7 +22,7 @@ public class IdempotencyAspect {
     private static final String PROCESS = "PROCESS";
     private static final String COMPLETE = "COMPLETE";
 
-    private final RedisTemplate<String, String> redisTemplate;
+    private final IdempotencyRepository idempotencyRepository;
 
     @Around("@annotation(idempotencyCheck)")
     public Object handleIdempotencyRequest(ProceedingJoinPoint joinPoint, IdempotencyCheck idempotencyCheck)
@@ -42,19 +41,17 @@ public class IdempotencyAspect {
             return joinPoint.proceed();
         }
 
-        String key = getKey(idempotencyCheck, idempotencyKey);
-        Duration duration = Duration.ofSeconds(idempotencyCheck.ttlSeconds());
-        Boolean isSet = redisTemplate.opsForValue().setIfAbsent(key, PROCESS, duration);
-        if (!Boolean.TRUE.equals(isSet)) {
+        String prefix = idempotencyCheck.prefix();
+        if (idempotencyRepository.reserveIdempotencyKey(prefix, idempotencyKey)) {
             throw new IllegalStateException("The request has been executed already.");
         }
 
         try {
             Object result = joinPoint.proceed();
-            redisTemplate.opsForValue().set(key, COMPLETE, duration);
+            idempotencyRepository.completeIdempotencyKey(prefix, idempotencyKey);
             return result;
         } catch (Exception e) {
-            redisTemplate.delete(idempotencyKey);
+            idempotencyRepository.cancelIdempotencyKey(prefix, idempotencyKey);
             throw e;
         }
     }
@@ -65,9 +62,5 @@ public class IdempotencyAspect {
                 .map(arg -> (IdempotencyKeyed) arg)
                 .findFirst()
                 .orElse(null);
-    }
-
-    private String getKey(IdempotencyCheck idempotencyCheck, String idempotencyKey) {
-        return idempotencyCheck.prefix() + ":" + idempotencyKey;
     }
 }
