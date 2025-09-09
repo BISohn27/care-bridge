@@ -42,7 +42,7 @@ public class IdempotencyAspect {
         }
 
         String prefix = idempotencyCheck.prefix();
-        if (idempotencyRepository.reserveIdempotencyKey(prefix, idempotencyKey)) {
+        if (!idempotencyRepository.reserveIdempotencyKey(prefix, idempotencyKey)) {
             throw new IllegalStateException("The request has been executed already.");
         }
 
