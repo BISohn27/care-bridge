@@ -5,7 +5,8 @@ dependencies {
     implementation("org.springframework.data:spring-data-redis")
 
     runtimeOnly("com.h2database:h2")
-    runtimeOnly("com.mysql:mysql-connector-j")
+    implementation("com.mysql:mysql-connector-j")
+    implementation("io.lettuce:lettuce-core")
 
     implementation("org.flywaydb:flyway-core")
     implementation("org.flywaydb:flyway-mysql")
