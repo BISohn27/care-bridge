@@ -7,6 +7,7 @@ include(
     "common:common-domain",
     "payment:payment-domain",
     "payment:infrastructure",
+    "payment:web-api"
 )
 
 project(":common:common-domain").projectDir = file("common/domain")
