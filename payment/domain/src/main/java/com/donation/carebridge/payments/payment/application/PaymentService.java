@@ -14,6 +14,7 @@ import com.donation.carebridge.payments.payment.model.PaymentEvent;
 import com.donation.carebridge.payments.payment.model.PaymentStatus;
 import com.donation.carebridge.payments.payment.out.PaymentEventRepository;
 import com.donation.carebridge.payments.payment.out.PaymentRepository;
+import com.donation.carebridge.payments.payment.usecase.CreatePaymentUseCase;
 import com.donation.carebridge.payments.pg.application.PgProviderService;
 import com.donation.carebridge.payments.pg.model.PgAccount;
 import com.donation.carebridge.payments.pg.model.PgProvider;
@@ -26,7 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class PaymentService {
+public class PaymentService implements CreatePaymentUseCase {
 
     private final PaymentUrlProperties paymentUrlProperties;
     private final PgRouter pgRouter;
