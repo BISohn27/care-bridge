@@ -1,6 +1,7 @@
 package com.donation.carebridge.payments.payment.application;
 
 import com.donation.carebridge.payments.payment.annotation.IdempotencyCheck;
+import com.donation.carebridge.payments.payment.exception.PaymentException;
 import com.donation.carebridge.payments.payment.model.IdempotencyKeyed;
 import com.donation.carebridge.payments.payment.out.IdempotencyRepository;
 import lombok.RequiredArgsConstructor;
@@ -40,7 +41,8 @@ public class IdempotencyAspect {
 
         String prefix = idempotencyCheck.prefix();
         if (!idempotencyRepository.reserveIdempotencyKey(prefix, idempotencyKey)) {
-            throw new IllegalStateException("The request has been executed already.");
+            throw new PaymentException("DUPLICATE_REQUEST",
+                    "The request has been executed already: " + idempotencyKey);
         }
 
         try {

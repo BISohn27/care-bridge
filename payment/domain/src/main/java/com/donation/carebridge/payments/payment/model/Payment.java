@@ -1,6 +1,7 @@
 package com.donation.carebridge.payments.payment.model;
 
 import com.donation.carebridge.common.domain.BaseTimeEntity;
+import com.donation.carebridge.payments.payment.exception.PaymentException;
 import com.donation.carebridge.payments.pg.model.PgProvider;
 import com.donation.carebridge.payments.pg.model.PgProviderCode;
 import jakarta.persistence.Column;
@@ -98,7 +99,8 @@ public class Payment extends BaseTimeEntity {
 
     public void markRequiresAction() {
         if (this.status != PaymentStatus.CREATED) {
-            throw new IllegalStateException("Only CREATED can transition to REQUIRES_ACTION, but was " + this.status);
+            throw new PaymentException("INVALID_STATUS_TRANSITION",
+                    "Only CREATED can transition to REQUIRES_ACTION, but was " + this.status);
         }
         this.status = PaymentStatus.REQUIRES_ACTION;
     }
@@ -112,7 +114,8 @@ public class Payment extends BaseTimeEntity {
 
     private void requireConfirmable() {
         if (pgProvider == null) {
-            throw new IllegalStateException("PG provider is not set");
+            throw new PaymentException("PG_PROVIDER_NOT_SET",
+                    "PG provider is not set");
         }
         pgProvider.assertConfirmable(this.status);
     }
