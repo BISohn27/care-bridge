@@ -69,6 +69,16 @@ public class PaymentEvent {
         );
     }
 
+    public static PaymentEvent confirm(String paymentId, String rawPayload) {
+        return new PaymentEvent(
+                paymentId,
+                Origin.SYSTEM,
+                EventId.of(paymentId, PaymentEventType.CONFIRMED).getValue(),
+                PaymentEventType.CONFIRMED,
+                rawPayload
+        );
+    }
+
     public void markAsPublished() {
         isPublished = true;
     }

@@ -2,6 +2,9 @@ package com.donation.carebridge.payments.payment.application;
 
 import com.donation.carebridge.payments.payment.annotation.IdempotencyCheck;
 import com.donation.carebridge.payments.payment.config.PaymentUrlProperties;
+import com.donation.carebridge.payments.payment.dto.ConfirmPaymentCommand;
+import com.donation.carebridge.payments.payment.dto.ConfirmPaymentRequest;
+import com.donation.carebridge.payments.payment.dto.ConfirmPaymentResult;
 import com.donation.carebridge.payments.payment.dto.CreatePaymentCommand;
 import com.donation.carebridge.payments.payment.dto.CreatePaymentRequest;
 import com.donation.carebridge.payments.payment.dto.CreatePaymentResult;
@@ -9,11 +12,13 @@ import com.donation.carebridge.payments.payment.dto.PaymentExecutionResult;
 import com.donation.carebridge.payments.payment.dto.ProviderContext;
 import com.donation.carebridge.payments.payment.dto.ProviderSelection;
 import com.donation.carebridge.payments.payment.event.PaymentEventPublished;
+import com.donation.carebridge.payments.payment.exception.PaymentException;
 import com.donation.carebridge.payments.payment.model.Payment;
 import com.donation.carebridge.payments.payment.model.PaymentEvent;
 import com.donation.carebridge.payments.payment.model.PaymentStatus;
 import com.donation.carebridge.payments.payment.out.PaymentEventRepository;
 import com.donation.carebridge.payments.payment.out.PaymentRepository;
+import com.donation.carebridge.payments.payment.usecase.ConfirmPaymentUseCase;
 import com.donation.carebridge.payments.payment.usecase.CreatePaymentUseCase;
 import com.donation.carebridge.payments.pg.application.PgProviderService;
 import com.donation.carebridge.payments.pg.model.PgAccount;
@@ -27,7 +32,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class PaymentService implements CreatePaymentUseCase {
+public class PaymentService implements CreatePaymentUseCase, ConfirmPaymentUseCase {
 
     private final PaymentUrlProperties paymentUrlProperties;
     private final PgRouter pgRouter;
@@ -71,6 +76,51 @@ public class PaymentService implements CreatePaymentUseCase {
         eventPublisher.publishEvent(PaymentEventPublished.from(createEvent));
 
         return createPaymentResult;
+    }
+
+    @Transactional
+    @IdempotencyCheck(prefix = "payment-confirm")
+    public ConfirmPaymentResult confirm(ConfirmPaymentRequest request) {
+        Payment payment = paymentRepository.findById(request.paymentId())
+                .orElseThrow(() -> new PaymentException("PAYMENT_NOT_FOUND", 
+                        "Payment not found: " + request.paymentId()));
+
+        PgProvider pgProvider = pgProviderService.getProvider(payment.getPgProvider(), null);
+        
+        PaymentExecutionResult executionResult = paymentExecutorRegistry.get(pgProvider.getCode())
+                .confirmPayment(
+                        new ConfirmPaymentCommand(
+                                payment.getId(),
+                                request.idempotencyKey(),
+                                payment.getAmount(),
+                                request.payload()),
+                        getProviderContext(pgProvider));
+
+        updatePaymentStatus(payment, executionResult);
+
+        PaymentEvent confirmEvent = PaymentEvent.confirm(payment.getId(), executionResult.rawPayload());
+        paymentEventRepository.save(confirmEvent);
+        eventPublisher.publishEvent(PaymentEventPublished.from(confirmEvent));
+
+        return new ConfirmPaymentResult(
+                payment.getId(),
+                executionResult.status(),
+                payment.getAmount());
+    }
+
+    private void updatePaymentStatus(Payment payment, PaymentExecutionResult executionResult) {
+        switch (executionResult.status()) {
+            case PAID -> payment.markPaid(executionResult.pgPaymentId());
+            case FAILED -> {
+                if (executionResult.reasonCode() != null) {
+                    payment.markFailedFromPg(executionResult.reasonCode(), executionResult.reasonMessage());
+                } else {
+                    payment.markFailedFromSystem("UNKNOWN_ERROR", "Confirm failed without specific reason");
+                }
+            }
+            default -> throw new PaymentException("INVALID_CONFIRM_RESULT", 
+                    "Unexpected status from confirm: " + executionResult.status());
+        }
     }
 
     private CreatePaymentCommand getCreatePaymentCommand(String paymentId, CreatePaymentRequest request) {

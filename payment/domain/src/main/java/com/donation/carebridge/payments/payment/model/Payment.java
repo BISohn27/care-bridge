@@ -42,6 +42,7 @@ public class Payment extends BaseTimeEntity {
     @Column(name = "donor_id", length = 36)
     private String donorId;
 
+    @Getter
     @Column(name = "amount", nullable = false)
     private long amount;
 
