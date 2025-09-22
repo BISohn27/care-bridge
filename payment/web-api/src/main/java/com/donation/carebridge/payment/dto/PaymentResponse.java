@@ -1,5 +1,6 @@
 package com.donation.carebridge.payment.dto;
 
+import com.donation.carebridge.payments.payment.dto.ConfirmPaymentResult;
 import com.donation.carebridge.payments.payment.dto.CreatePaymentResult;
 import com.donation.carebridge.payments.payment.dto.NextAction;
 import com.donation.carebridge.payments.payment.model.PaymentStatus;
@@ -21,6 +22,16 @@ public record PaymentResponse(
                 nextAction.flowType(),
                 nextAction.provider(),
                 nextAction.payload()
+        );
+    }
+
+    public static PaymentResponse from(ConfirmPaymentResult result) {
+        return new PaymentResponse(
+                result.paymentId(),
+                result.status(),
+                null,
+                null,
+                null
         );
     }
 }
