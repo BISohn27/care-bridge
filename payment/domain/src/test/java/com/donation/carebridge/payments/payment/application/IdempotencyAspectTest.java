@@ -1,6 +1,7 @@
 package com.donation.carebridge.payments.payment.application;
 
 import com.donation.carebridge.payments.payment.annotation.IdempotencyCheck;
+import com.donation.carebridge.payments.payment.exception.PaymentException;
 import com.donation.carebridge.payments.payment.model.IdempotencyKeyed;
 import com.donation.carebridge.payments.payment.out.IdempotencyRepository;
 import lombok.AllArgsConstructor;
@@ -73,7 +74,7 @@ class IdempotencyAspectTest {
                 .thenReturn(false);
 
         assertThatThrownBy(() -> testPaymentService.processPayment(request))
-                .isInstanceOf(IllegalStateException.class);
+                .isInstanceOf(PaymentException.class);
 
         verify(idempotencyRepository).reserveIdempotencyKey("payment", paymentId);
         verify(idempotencyRepository, never()).completeIdempotencyKey(anyString(), anyString());

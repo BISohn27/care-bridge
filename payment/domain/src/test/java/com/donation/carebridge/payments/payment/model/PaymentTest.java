@@ -1,5 +1,6 @@
 package com.donation.carebridge.payments.payment.model;
 
+import com.donation.carebridge.payments.payment.exception.PaymentException;
 import com.donation.carebridge.payments.pg.model.PgFlowType;
 import com.donation.carebridge.payments.pg.model.PgProvider;
 import com.donation.carebridge.payments.pg.model.PgProviderCode;
@@ -57,7 +58,7 @@ class PaymentTest {
         payment.markFailedFromSystem("SYS_ERR", "시스템 오류");
 
         assertThatThrownBy(payment::markRequiresAction)
-                .isInstanceOf(IllegalStateException.class)
+                .isInstanceOf(PaymentException.class)
                 .hasMessageContaining("CREATED");
     }
 
