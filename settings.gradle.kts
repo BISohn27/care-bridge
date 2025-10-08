@@ -5,10 +5,10 @@ rootProject.name = "care-bridge"
 
 include(
     "common:common-domain",
-    "payment:payment-domain",
-    "payment:infrastructure",
-    "payment:web-api"
+    "donation:donation-domain",
+    "donation:infrastructure",
+    "donation:web-api"
 )
 
 project(":common:common-domain").projectDir = file("common/domain")
-project(":payment:payment-domain").projectDir = file("payment/domain")
+project(":donation:donation-domain").projectDir = file("donation/domain")
