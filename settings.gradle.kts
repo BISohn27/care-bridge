@@ -7,8 +7,10 @@ include(
     "common:common-domain",
     "donation:donation-domain",
     "donation:infrastructure",
-    "donation:web-api"
+    "donation:web-api",
+    "donationcase:donationcase-domain"
 )
 
 project(":common:common-domain").projectDir = file("common/domain")
 project(":donation:donation-domain").projectDir = file("donation/domain")
+project(":donationcase:donationcase-domain").projectDir = file("donationcase/domain")
