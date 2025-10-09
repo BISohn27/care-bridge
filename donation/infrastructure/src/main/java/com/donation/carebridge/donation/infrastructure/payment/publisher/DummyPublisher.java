@@ -1,7 +1,7 @@
 package com.donation.carebridge.donation.infrastructure.payment.publisher;
 
 import com.donation.carebridge.donation.domain.payment.event.PaymentEventPublished;
-import com.donation.carebridge.donation.domain.payment.out.PaymentEventPublisher;
+import com.donation.carebridge.donation.domain.payment.application.out.PaymentEventPublisher;
 import org.springframework.context.annotation.Fallback;
 import org.springframework.stereotype.Component;
 

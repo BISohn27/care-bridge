@@ -1,7 +1,7 @@
 package com.donation.carebridge.donation.infrastructure.payment.repository;
 
 import com.donation.carebridge.donation.domain.payment.model.PaymentEvent;
-import com.donation.carebridge.donation.domain.payment.out.PaymentEventRepository;
+import com.donation.carebridge.donation.domain.payment.application.out.PaymentEventRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 

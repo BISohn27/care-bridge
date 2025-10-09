@@ -16,10 +16,10 @@ import com.donation.carebridge.donation.domain.payment.exception.PaymentExceptio
 import com.donation.carebridge.donation.domain.payment.model.Payment;
 import com.donation.carebridge.donation.domain.payment.model.PaymentEvent;
 import com.donation.carebridge.donation.domain.payment.model.PaymentStatus;
-import com.donation.carebridge.donation.domain.payment.out.PaymentEventRepository;
-import com.donation.carebridge.donation.domain.payment.out.PaymentRepository;
-import com.donation.carebridge.donation.domain.payment.usecase.ConfirmPaymentUseCase;
-import com.donation.carebridge.donation.domain.payment.usecase.CreatePaymentUseCase;
+import com.donation.carebridge.donation.domain.payment.application.out.PaymentEventRepository;
+import com.donation.carebridge.donation.domain.payment.application.out.PaymentRepository;
+import com.donation.carebridge.donation.domain.payment.application.in.ConfirmPaymentUseCase;
+import com.donation.carebridge.donation.domain.payment.application.in.CreatePaymentUseCase;
 import com.donation.carebridge.donation.domain.pg.application.PgProviderService;
 import com.donation.carebridge.donation.domain.pg.model.PgAccount;
 import com.donation.carebridge.donation.domain.pg.model.PgProvider;

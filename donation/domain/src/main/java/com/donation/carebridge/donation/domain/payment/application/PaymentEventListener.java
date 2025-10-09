@@ -2,8 +2,8 @@ package com.donation.carebridge.donation.domain.payment.application;
 
 import com.donation.carebridge.donation.domain.payment.event.PaymentEventPublished;
 import com.donation.carebridge.donation.domain.payment.model.PaymentEvent;
-import com.donation.carebridge.donation.domain.payment.out.PaymentEventPublisher;
-import com.donation.carebridge.donation.domain.payment.out.PaymentEventRepository;
+import com.donation.carebridge.donation.domain.payment.application.out.PaymentEventPublisher;
+import com.donation.carebridge.donation.domain.payment.application.out.PaymentEventRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;

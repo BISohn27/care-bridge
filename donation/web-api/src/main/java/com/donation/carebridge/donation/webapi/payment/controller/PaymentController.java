@@ -6,8 +6,8 @@ import com.donation.carebridge.donation.domain.payment.dto.ConfirmPaymentRequest
 import com.donation.carebridge.donation.domain.payment.dto.ConfirmPaymentResult;
 import com.donation.carebridge.donation.domain.payment.dto.CreatePaymentRequest;
 import com.donation.carebridge.donation.domain.payment.dto.CreatePaymentResult;
-import com.donation.carebridge.donation.domain.payment.usecase.ConfirmPaymentUseCase;
-import com.donation.carebridge.donation.domain.payment.usecase.CreatePaymentUseCase;
+import com.donation.carebridge.donation.domain.payment.application.in.ConfirmPaymentUseCase;
+import com.donation.carebridge.donation.domain.payment.application.in.CreatePaymentUseCase;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;

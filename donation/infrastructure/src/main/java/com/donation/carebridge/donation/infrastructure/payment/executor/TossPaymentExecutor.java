@@ -6,7 +6,7 @@ import com.donation.carebridge.donation.domain.payment.dto.NextAction;
 import com.donation.carebridge.donation.domain.payment.dto.PaymentExecutionResult;
 import com.donation.carebridge.donation.domain.payment.dto.ProviderContext;
 import com.donation.carebridge.donation.domain.payment.model.PaymentStatus;
-import com.donation.carebridge.donation.domain.payment.out.PaymentExecutor;
+import com.donation.carebridge.donation.domain.payment.application.out.PaymentExecutor;
 import com.donation.carebridge.donation.domain.pg.model.PgProviderCode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;

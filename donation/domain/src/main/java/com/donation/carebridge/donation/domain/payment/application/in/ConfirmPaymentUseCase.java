@@ -1,4 +1,4 @@
-package com.donation.carebridge.donation.domain.payment.usecase;
+package com.donation.carebridge.donation.domain.payment.application.in;
 
 import com.donation.carebridge.donation.domain.payment.dto.ConfirmPaymentRequest;
 import com.donation.carebridge.donation.domain.payment.dto.ConfirmPaymentResult;

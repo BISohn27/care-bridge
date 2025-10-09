@@ -3,7 +3,7 @@ package com.donation.carebridge.donation.domain.payment.application;
 import com.donation.carebridge.donation.domain.payment.annotation.IdempotencyCheck;
 import com.donation.carebridge.donation.domain.payment.exception.PaymentException;
 import com.donation.carebridge.donation.domain.payment.model.IdempotencyKeyed;
-import com.donation.carebridge.donation.domain.payment.out.IdempotencyRepository;
+import com.donation.carebridge.donation.domain.payment.application.out.IdempotencyRepository;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.junit.jupiter.api.BeforeEach;
