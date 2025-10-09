@@ -40,6 +40,18 @@ CREATE TABLE case_status_audits (
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ${engine} ${charset};
 
+CREATE TABLE donation (
+    id VARCHAR(36) PRIMARY KEY,
+    case_id VARCHAR(36) NOT NULL,
+    donor_id VARCHAR(36) NOT NULL,
+    status VARCHAR(30) NOT NULL,
+    amount BIGINT NOT NULL,
+    currency VARCHAR(10) NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    completed_at TIMESTAMP,
+) ${engine} ${charset};
+
 CREATE TABLE pg_providers (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,      -- 시스템 아이디
     code VARCHAR(50) NOT NULL UNIQUE,          -- 예: 'toss', 'stripe', 'inicis'
@@ -64,8 +76,7 @@ CREATE TABLE pg_accounts (
 
 CREATE TABLE payments (
     id CHAR(36) NOT NULL PRIMARY KEY,
-    case_id CHAR(36) NOT NULL,
-    donor_id CHAR(36) DEFAULT NULL,
+    donation_id VARCHAR(36) NOT NULL,
     amount BIGINT NOT NULL,
     currency VARCHAR(3) NOT NULL DEFAULT 'KRW',
     status VARCHAR(20) NOT NULL,
@@ -77,8 +88,7 @@ CREATE TABLE payments (
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL ON UPDATE CURRENT_TIMESTAMP,
     paid_at TIMESTAMP NULL DEFAULT NULL,
-    FOREIGN KEY (donor_id) REFERENCES users(id),
-    FOREIGN KEY (case_id) REFERENCES cases(id),
+    FOREIGN KEY (donation_id) REFERENCES donations(id),
     FOREIGN KEY (pg_provider_id) REFERENCES pg_providers(id),
     UNIQUE KEY uq_payments_pg (pg_provider_id, pg_payment_id)
 ) ${engine} ${charset};
