@@ -18,9 +18,9 @@ import com.donation.carebridge.donation.domain.payment.model.PaymentEvent;
 import com.donation.carebridge.donation.domain.payment.model.PaymentStatus;
 import com.donation.carebridge.donation.domain.payment.application.out.PaymentEventRepository;
 import com.donation.carebridge.donation.domain.payment.application.out.PaymentRepository;
-import com.donation.carebridge.donation.domain.payment.application.in.ConfirmPaymentUseCase;
-import com.donation.carebridge.donation.domain.payment.application.in.CreatePaymentUseCase;
-import com.donation.carebridge.donation.domain.pg.application.PgProviderService;
+import com.donation.carebridge.donation.domain.payment.application.in.PaymentConfirmer;
+import com.donation.carebridge.donation.domain.payment.application.in.PaymentInitiator;
+import com.donation.carebridge.donation.domain.pg.application.in.PgProviderFinder;
 import com.donation.carebridge.donation.domain.pg.model.PgAccount;
 import com.donation.carebridge.donation.domain.pg.model.PgProvider;
 import lombok.RequiredArgsConstructor;
@@ -32,11 +32,11 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class PaymentService implements CreatePaymentUseCase, ConfirmPaymentUseCase {
+public class PaymentService implements PaymentInitiator, PaymentConfirmer {
 
     private final PaymentUrlProperties paymentUrlProperties;
     private final PgRouter pgRouter;
-    private final PgProviderService pgProviderService;
+    private final PgProviderFinder pgProviderFinder;
     private final PaymentExecutorRegistry paymentExecutorRegistry;
     private final PaymentRepository paymentRepository;
     private final PaymentEventRepository paymentEventRepository;
@@ -44,14 +44,14 @@ public class PaymentService implements CreatePaymentUseCase, ConfirmPaymentUseCa
 
     @Transactional
     @IdempotencyCheck(prefix = "payment-create")
-    public CreatePaymentResult create(CreatePaymentRequest createRequest) {
+    public CreatePaymentResult initiate(CreatePaymentRequest createRequest) {
 
         ProviderSelection selection = pgRouter.resolve(createRequest.pgProviderCode(),
                 createRequest.paymentMethod(),
                 createRequest.currency(),
                 createRequest.amount());
 
-        PgProvider pgProvider = pgProviderService.getProvider(selection.pgProviderCode(), selection.env());
+        PgProvider pgProvider = pgProviderFinder.find(selection.pgProviderCode(), selection.env());
 
         Payment created = Payment.create(
                 createRequest.donerId(),
@@ -84,7 +84,7 @@ public class PaymentService implements CreatePaymentUseCase, ConfirmPaymentUseCa
                 .orElseThrow(() -> new PaymentException("PAYMENT_NOT_FOUND", 
                         "Payment not found: " + request.paymentId()));
 
-        PgProvider pgProvider = pgProviderService.getProvider(payment.getPgProvider(), null);
+        PgProvider pgProvider = pgProviderFinder.find(payment.getPgProvider(), null);
         
         PaymentExecutionResult executionResult = paymentExecutorRegistry.get(pgProvider.getCode())
                 .confirmPayment(

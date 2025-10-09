@@ -6,8 +6,8 @@ import com.donation.carebridge.donation.domain.payment.dto.ConfirmPaymentRequest
 import com.donation.carebridge.donation.domain.payment.dto.ConfirmPaymentResult;
 import com.donation.carebridge.donation.domain.payment.dto.CreatePaymentRequest;
 import com.donation.carebridge.donation.domain.payment.dto.CreatePaymentResult;
-import com.donation.carebridge.donation.domain.payment.application.in.ConfirmPaymentUseCase;
-import com.donation.carebridge.donation.domain.payment.application.in.CreatePaymentUseCase;
+import com.donation.carebridge.donation.domain.payment.application.in.PaymentConfirmer;
+import com.donation.carebridge.donation.domain.payment.application.in.PaymentInitiator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -19,13 +19,13 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class PaymentController {
 
-    private final CreatePaymentUseCase createPaymentUseCase;
-    private final ConfirmPaymentUseCase confirmPaymentUseCase;
+    private final PaymentInitiator paymentInitiator;
+    private final PaymentConfirmer paymentConfirmer;
 
     @PostMapping
     public ResponseEntity<ResponseMessage<PaymentResponse>> createPayment(
             @RequestBody CreatePaymentRequest request) {
-        CreatePaymentResult createPaymentResult = createPaymentUseCase.create(request);
+        CreatePaymentResult createPaymentResult = paymentInitiator.initiate(request);
         PaymentResponse paymentResponse = PaymentResponse.from(createPaymentResult);
         return ResponseEntity.ok(ResponseMessage.success(paymentResponse));
     }
@@ -39,7 +39,7 @@ public class PaymentController {
                 request.idempotencyKey(), 
                 request.payload()
         );
-        ConfirmPaymentResult confirmResult = confirmPaymentUseCase.confirm(confirmRequest);
+        ConfirmPaymentResult confirmResult = paymentConfirmer.confirm(confirmRequest);
         PaymentResponse paymentResponse = PaymentResponse.from(confirmResult);
         return ResponseEntity.ok(ResponseMessage.success(paymentResponse));
     }

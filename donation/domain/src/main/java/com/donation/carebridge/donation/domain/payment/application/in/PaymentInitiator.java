@@ -3,7 +3,7 @@ package com.donation.carebridge.donation.domain.payment.application.in;
 import com.donation.carebridge.donation.domain.payment.dto.CreatePaymentRequest;
 import com.donation.carebridge.donation.domain.payment.dto.CreatePaymentResult;
 
-public interface CreatePaymentUseCase {
+public interface PaymentInitiator {
 
-    CreatePaymentResult create(CreatePaymentRequest createRequest);
+    CreatePaymentResult initiate(CreatePaymentRequest createRequest);
 }
