@@ -54,8 +54,7 @@ public class PaymentService implements CreatePaymentUseCase, ConfirmPaymentUseCa
         PgProvider pgProvider = pgProviderService.getProvider(selection.pgProviderCode(), selection.env());
 
         Payment created = Payment.create(
-                createRequest.caseId(),
-                createRequest.donorId(),
+                createRequest.donerId(),
                 createRequest.amount(),
                 createRequest.currency(),
                 createRequest.idempotencyKey(),
@@ -123,13 +122,13 @@ public class PaymentService implements CreatePaymentUseCase, ConfirmPaymentUseCa
         }
     }
 
-    private CreatePaymentCommand getCreatePaymentCommand(String paymentId, CreatePaymentRequest request) {
+    private CreatePaymentCommand getCreatePaymentCommand(String paymentId, CreatePaymentRequest createRequest) {
         return new CreatePaymentCommand(
                 paymentId,
-                request.idempotencyKey(),
-                request.amount(),
-                request.currency(),
-                request.caseId() + " - " + request.donorId(),
+                createRequest.idempotencyKey(),
+                createRequest.amount(),
+                createRequest.currency(),
+                createRequest.donerId(),
                 paymentUrlProperties.getSuccessUrl(),
                 paymentUrlProperties.getFailUrl(),
                 paymentUrlProperties.getCancelUrl()

@@ -1,6 +1,6 @@
 package com.donation.carebridge.donation.domain.payment.model;
 
-import com.donation.carebridge.common.domain.BaseTimeEntity;
+import com.donation.carebridge.common.domain.UUIDBaseTimeEntity;
 import com.donation.carebridge.donation.domain.payment.exception.PaymentException;
 import com.donation.carebridge.donation.domain.pg.model.PgProvider;
 import com.donation.carebridge.donation.domain.pg.model.PgProviderCode;
@@ -10,7 +10,6 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
-import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
@@ -20,7 +19,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 @Entity
 @Table(
@@ -30,17 +28,10 @@ import java.util.UUID;
     }
 )
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Payment extends BaseTimeEntity {
+public class Payment extends UUIDBaseTimeEntity {
 
-    @Id @Getter
-    @Column(name = "id", length = 36, nullable = false, updatable = false)
-    private String id;
-
-    @Column(name = "case_id", length = 36, nullable = false)
-    private String caseId;
-
-    @Column(name = "donor_id", length = 36)
-    private String donorId;
+    @Column(name = "donation_id", length = 36, nullable = false)
+    private String donationId;
 
     @Getter
     @Column(name = "amount", nullable = false)
@@ -72,15 +63,12 @@ public class Payment extends BaseTimeEntity {
     private LocalDateTime paidAt;
 
     private Payment(
-            String caseId,
-            String donorId,
+            String donationId,
             long amount,
             Currency currency,
             String idempotencyKey,
             PgProvider pgProvider) {
-        this.id = UUID.randomUUID().toString();
-        this.caseId = caseId;
-        this.donorId = donorId;
+        this.donationId = donationId;
         this.amount = amount;
         this.currency = currency;
         this.status = PaymentStatus.CREATED;
@@ -89,13 +77,12 @@ public class Payment extends BaseTimeEntity {
     }
 
     public static Payment create(
-            String caseId,
-            String donorId,
+            String donationId,
             long amount,
             Currency currency,
             String idempotencyKey,
             PgProvider pgProvider) {
-        return new Payment(caseId, donorId, amount, currency, idempotencyKey, pgProvider);
+        return new Payment(donationId, amount, currency, idempotencyKey, pgProvider);
     }
 
     public void markRequiresAction() {
