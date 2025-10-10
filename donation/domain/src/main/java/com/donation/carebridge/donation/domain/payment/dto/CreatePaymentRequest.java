@@ -5,7 +5,7 @@ import com.donation.carebridge.donation.domain.payment.model.Currency;
 import com.donation.carebridge.donation.domain.pg.model.PgProviderCode;
 
 public record CreatePaymentRequest(
-    String donerId,
+    String donationId,
     Currency currency,
     long amount,
     PgProviderCode pgProviderCode,

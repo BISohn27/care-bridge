@@ -54,7 +54,7 @@ public class PaymentService implements PaymentInitiator, PaymentConfirmer {
         PgProvider pgProvider = pgProviderFinder.find(selection.pgProviderCode(), selection.env());
 
         Payment created = Payment.create(
-                createRequest.donerId(),
+                createRequest.donationId(),
                 createRequest.amount(),
                 createRequest.currency(),
                 createRequest.idempotencyKey(),
@@ -72,7 +72,7 @@ public class PaymentService implements PaymentInitiator, PaymentConfirmer {
 
         PaymentEvent createEvent = PaymentEvent.create(created.getId(), executionResult.rawPayload());
         paymentEventRepository.save(createEvent);
-        eventPublisher.publishEvent(PaymentEventPublished.from(createEvent));
+        eventPublisher.publishEvent(PaymentEventPublished.from(created.getDonationId(), createEvent));
 
         return createPaymentResult;
     }
@@ -87,8 +87,7 @@ public class PaymentService implements PaymentInitiator, PaymentConfirmer {
         PgProvider pgProvider = pgProviderFinder.find(payment.getPgProvider(), null);
         
         PaymentExecutionResult executionResult = paymentExecutorRegistry.get(pgProvider.getCode())
-                .confirmPayment(
-                        new ConfirmPaymentCommand(
+                .confirmPayment(new ConfirmPaymentCommand(
                                 payment.getId(),
                                 request.idempotencyKey(),
                                 payment.getAmount(),
@@ -99,7 +98,7 @@ public class PaymentService implements PaymentInitiator, PaymentConfirmer {
 
         PaymentEvent confirmEvent = PaymentEvent.confirm(payment.getId(), executionResult.rawPayload());
         paymentEventRepository.save(confirmEvent);
-        eventPublisher.publishEvent(PaymentEventPublished.from(confirmEvent));
+        eventPublisher.publishEvent(PaymentEventPublished.from(payment.getDonationId(), confirmEvent));
 
         return new ConfirmPaymentResult(
                 payment.getId(),
@@ -128,7 +127,7 @@ public class PaymentService implements PaymentInitiator, PaymentConfirmer {
                 createRequest.idempotencyKey(),
                 createRequest.amount(),
                 createRequest.currency(),
-                createRequest.donerId(),
+                createRequest.donationId(),
                 paymentUrlProperties.getSuccessUrl(),
                 paymentUrlProperties.getFailUrl(),
                 paymentUrlProperties.getCancelUrl()

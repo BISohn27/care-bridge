@@ -30,6 +30,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Payment extends UUIDBaseTimeEntity {
 
+    @Getter
     @Column(name = "donation_id", length = 36, nullable = false)
     private String donationId;
 
