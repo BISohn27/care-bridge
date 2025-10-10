@@ -20,8 +20,6 @@ import java.time.LocalDateTime;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Donation extends UUIDBaseTimeEntity {
 
-    private String caseId;
-
     private String donorId;
 
     @Enumerated(EnumType.STRING)
