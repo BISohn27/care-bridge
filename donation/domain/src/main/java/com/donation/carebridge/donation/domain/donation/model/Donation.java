@@ -3,14 +3,12 @@ package com.donation.carebridge.donation.domain.donation.model;
 import com.donation.carebridge.common.domain.UUIDBaseTimeEntity;
 import com.donation.carebridge.donation.domain.donationcase.application.model.DonationCase;
 import com.donation.carebridge.donation.domain.payment.model.Currency;
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToOne;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -52,7 +50,28 @@ public class Donation extends UUIDBaseTimeEntity {
     }
 
     public void complete() {
+        checkModifiable();
+
+        this.donationCase.addAmount(amount);
         this.status = DonationStatus.COMPLETED;
         this.completedAt = LocalDateTime.now();
+    }
+
+    private void checkModifiable() {
+        if (status != DonationStatus.PENDING) {
+            throw new IllegalStateException("Donation is not pending");
+        }
+    }
+
+    public void cancel() {
+        checkModifiable();
+        this.donationCase.releaseDonation(amount);
+        this.status = DonationStatus.CANCELLED;
+    }
+
+    public void expire() {
+        checkModifiable();
+        this.donationCase.releaseDonation(amount);
+        this.status = DonationStatus.EXPIRED;
     }
 }

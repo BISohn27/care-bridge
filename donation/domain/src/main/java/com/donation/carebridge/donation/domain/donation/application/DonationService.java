@@ -1,6 +1,8 @@
 package com.donation.carebridge.donation.domain.donation.application;
 
+import com.donation.carebridge.donation.domain.donation.application.in.DonationCanceller;
 import com.donation.carebridge.donation.domain.donation.application.in.DonationCompleter;
+import com.donation.carebridge.donation.domain.donation.application.in.DonationExpirator;
 import com.donation.carebridge.donation.domain.donation.application.in.DonationRegister;
 import com.donation.carebridge.donation.domain.donation.application.out.DonationRepository;
 import com.donation.carebridge.donation.domain.donation.dto.DonationRegisterCommand;
@@ -13,14 +15,20 @@ import com.donation.carebridge.donation.domain.payment.application.in.PaymentIni
 import com.donation.carebridge.donation.domain.payment.dto.CreatePaymentRequest;
 import com.donation.carebridge.donation.domain.payment.dto.CreatePaymentResult;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-public class DonationService implements DonationRegister, DonationCompleter {
+public class DonationService implements DonationRegister, DonationCompleter, DonationCanceller, DonationExpirator {
+
+    @Value("${care-bridge.donation.timeout-seconds:3600}")
+    private long expiredSeconds;
 
     private final DonationRepository donationRepository;
     private final DonationCaseFinder donationCaseFinder;
@@ -70,8 +78,29 @@ public class DonationService implements DonationRegister, DonationCompleter {
     @Override
     @Transactional
     public void complete(String donationId) {
-        Donation donation = donationRepository.find(donationId)
-                .orElseThrow(() -> new IllegalArgumentException("Donation not found"));
+        Donation donation = getDonationWithCase(donationId);
         donation.complete();
+    }
+
+    private Donation getDonationWithCase(String donationId) {
+        return donationRepository.findWithCase(donationId)
+                .orElseThrow(() -> new IllegalArgumentException("Donation not found"));
+    }
+
+    @Override
+    @Transactional
+    public void cancel(String donationId) {
+        Donation donation = getDonationWithCase(donationId);
+        donation.cancel();
+    }
+
+    @Override
+    @Transactional
+    public void expire() {
+        List<Donation> expiredDonations = donationRepository.findExpired(LocalDateTime.now().minusSeconds(expiredSeconds));
+
+        if  (!expiredDonations.isEmpty()) {
+            expiredDonations.forEach(Donation::expire);
+        }
     }
 }
