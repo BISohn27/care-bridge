@@ -5,9 +5,8 @@ CREATE TABLE users (
     name VARCHAR(100) NOT NULL,
     role VARCHAR(50) NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP NOT NULL ${updated_at_on_update}
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ${engine} ${charset};
-
 
 CREATE TABLE donation_cases (
     id VARCHAR(36) NOT NULL PRIMARY KEY,
@@ -53,7 +52,7 @@ CREATE TABLE donation (
     currency VARCHAR(10) NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    completed_at TIMESTAMP,
+    completed_at TIMESTAMP
 ) ${engine} ${charset};
 
 CREATE TABLE pg_providers (
@@ -92,7 +91,7 @@ CREATE TABLE payments (
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL ON UPDATE CURRENT_TIMESTAMP,
     paid_at TIMESTAMP NULL DEFAULT NULL,
-    FOREIGN KEY (donation_id) REFERENCES donations(id),
+    FOREIGN KEY (donation_id) REFERENCES donation(id),
     FOREIGN KEY (pg_provider_id) REFERENCES pg_providers(id),
     UNIQUE KEY uq_payments_pg (pg_provider_id, pg_payment_id)
 ) ${engine} ${charset};
