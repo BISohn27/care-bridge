@@ -7,6 +7,7 @@ import com.donation.carebridge.donation.domain.payment.model.PaymentEventType;
 import java.util.Objects;
 
 public record PaymentEventPublished(
+    String donationId,
     String paymentId,
     Origin origin,
     String eventId,
@@ -21,8 +22,9 @@ public record PaymentEventPublished(
         Objects.requireNonNull(eventType, "eventType cannot be null");
     }
     
-    public static PaymentEventPublished from(PaymentEvent paymentEvent) {
+    public static PaymentEventPublished from(String donationId, PaymentEvent paymentEvent) {
         return new PaymentEventPublished(
+            donationId,
             paymentEvent.getPaymentId(),
             paymentEvent.getOrigin(),
             paymentEvent.getEventId(),

@@ -9,6 +9,8 @@ include(
     "donation:infrastructure",
     "donation:web-api",
     "donation:donation-batch",
+    "donation:donation-producer",
+    "donation:donation-consumer",
     "donationcase:donationcase-domain"
 )
 
@@ -16,3 +18,5 @@ project(":common:common-domain").projectDir = file("common/domain")
 project(":donation:donation-domain").projectDir = file("donation/domain")
 project(":donationcase:donationcase-domain").projectDir = file("donationcase/domain")
 project(":donation:donation-batch").projectDir = file("donation/batch")
+project(":donation:donation-producer").projectDir = file("donation/producer")
+project(":donation:donation-consumer").projectDir = file("donation/consumer")
