@@ -27,9 +27,6 @@ public class DonationCase extends UUIDBaseTimeEntity {
     @Column(name = "current_amount", nullable = false)
     private long currentAmount = 0;
 
-    @Column(name = "reserved_amount", nullable = false)
-    private long reservedAmount = 0;
-
     @Column(name = "approved_at")
     private LocalDateTime approvedAt;
 
@@ -45,16 +42,5 @@ public class DonationCase extends UUIDBaseTimeEntity {
             throw new IllegalStateException("Current amount is greater than target amount");
         }
         this.currentAmount += amount;
-    }
-
-    public void reserveDonation(long amount) {
-        if (reservedAmount + amount > targetAmount) {
-            throw new IllegalStateException("Reserved amount is greater than target amount");
-        }
-        this.reservedAmount += amount;
-    }
-
-    public void releaseDonation(long amount) {
-        this.reservedAmount -= amount;
     }
 }
