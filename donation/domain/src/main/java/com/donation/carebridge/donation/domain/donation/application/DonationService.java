@@ -4,6 +4,7 @@ import com.donation.carebridge.donation.domain.donation.application.in.DonationC
 import com.donation.carebridge.donation.domain.donation.application.in.DonationCompleter;
 import com.donation.carebridge.donation.domain.donation.application.in.DonationExpirator;
 import com.donation.carebridge.donation.domain.donation.application.in.DonationRegister;
+import com.donation.carebridge.donation.domain.donation.application.out.DonationQuotaManager;
 import com.donation.carebridge.donation.domain.donation.application.out.DonationRepository;
 import com.donation.carebridge.donation.domain.donation.dto.DonationRegisterCommand;
 import com.donation.carebridge.donation.domain.donation.dto.DonationRegisterResult;
@@ -17,7 +18,6 @@ import com.donation.carebridge.donation.domain.payment.dto.CreatePaymentResult;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -32,32 +32,19 @@ public class DonationService implements DonationRegister, DonationCompleter, Don
 
     private final DonationRepository donationRepository;
     private final DonationCaseFinder donationCaseFinder;
+    private final DonationQuotaManager quotaManager;
     private final PaymentInitiator paymentInitiator;
+    private final DonationTransactionService donationTransactionService;
 
     @Override
-    @Transactional
     public DonationRegisterResult register(DonationRegisterCommand registerCommand) {
         DonationCase donationCase = donationCaseFinder.find(registerCommand.donationCaseId());
 
         checkCaseFundable(donationCase);
         checkDuplicate(registerCommand);
 
-        Donation donation = Donation.create(
-                donationCase,
-                registerCommand.donorId(),
-                registerCommand.amount(),
-                registerCommand.currency());
-        donation = donationRepository.save(donation);
-
-        CreatePaymentResult createPaymentResult = paymentInitiator.initiate(new CreatePaymentRequest(
-                donation.getId(),
-                registerCommand.currency(),
-                registerCommand.amount(),
-                registerCommand.pgProviderCode(),
-                registerCommand.paymentMethod(),
-                registerCommand.idempotencyKey()));
-
-        return new DonationRegisterResult(donation.getId(), donation.getCurrency(), donation.getAmount(), createPaymentResult);
+        Donation donation = processDonation(registerCommand, donationCase);
+        return initiatePayment(registerCommand, donation);
     }
 
     private void checkCaseFundable(DonationCase donationCase) {
@@ -75,32 +62,54 @@ public class DonationService implements DonationRegister, DonationCompleter, Don
         }
     }
 
+    private Donation processDonation(DonationRegisterCommand registerCommand, DonationCase donationCase) {
+        try {
+            quotaManager.reserve(registerCommand.donationCaseId(), registerCommand.amount());
+            return donationTransactionService.saveDonation(registerCommand, donationCase);
+        } catch (Exception e) {
+            quotaManager.release(registerCommand.donationCaseId(), registerCommand.amount());
+            throw e;
+        }
+    }
+
+    private DonationRegisterResult initiatePayment(DonationRegisterCommand registerCommand, Donation donation) {
+        CreatePaymentResult paymentResult = paymentInitiator.initiate(new CreatePaymentRequest(
+                donation.getId(),
+                registerCommand.currency(),
+                registerCommand.amount(),
+                registerCommand.pgProviderCode(),
+                registerCommand.paymentMethod(),
+                registerCommand.idempotencyKey()));
+
+        return new DonationRegisterResult(
+                donation.getId(),
+                donation.getCurrency(),
+                donation.getAmount(),
+                paymentResult
+        );
+    }
+
     @Override
-    @Transactional
     public void complete(String donationId) {
-        Donation donation = getDonationWithCase(donationId);
-        donation.complete();
-    }
-
-    private Donation getDonationWithCase(String donationId) {
-        return donationRepository.findWithCase(donationId)
-                .orElseThrow(() -> new IllegalArgumentException("Donation not found"));
+        Donation completed = donationTransactionService.completeDonation(donationId);
+        quotaManager.confirm(completed.getDonationCase().getId(), completed.getAmount());
     }
 
     @Override
-    @Transactional
     public void cancel(String donationId) {
-        Donation donation = getDonationWithCase(donationId);
-        donation.cancel();
+        Donation cancelled = donationTransactionService.cancelDonation(donationId);
+        quotaManager.release(cancelled.getDonationCase().getId(), cancelled.getAmount());
     }
 
     @Override
-    @Transactional
     public void expire() {
-        List<Donation> expiredDonations = donationRepository.findExpired(LocalDateTime.now().minusSeconds(expiredSeconds));
+        List<Donation> expiredDonations = donationTransactionService.expireDonations(
+                LocalDateTime.now().minusSeconds(expiredSeconds));
 
-        if  (!expiredDonations.isEmpty()) {
-            expiredDonations.forEach(Donation::expire);
+        if (!expiredDonations.isEmpty()) {
+            expiredDonations.forEach(donation -> {
+                quotaManager.release(donation.getDonationCase().getId(), donation.getAmount());
+            });
         }
     }
 }
