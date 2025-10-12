@@ -63,13 +63,11 @@ public class Donation extends UUIDBaseTimeEntity {
 
     public void cancel() {
         checkModifiable();
-        this.donationCase.releaseDonation(amount);
         this.status = DonationStatus.CANCELLED;
     }
 
     public void expire() {
         checkModifiable();
-        this.donationCase.releaseDonation(amount);
         this.status = DonationStatus.EXPIRED;
     }
 }
