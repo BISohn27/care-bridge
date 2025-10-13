@@ -4,4 +4,7 @@ dependencies {
 
     implementation("org.springframework:spring-aop")
     implementation("org.aspectj:aspectjweaver")
+
+    testImplementation("org.springframework:spring-context")
+    testImplementation("org.springframework:spring-test")
 }
