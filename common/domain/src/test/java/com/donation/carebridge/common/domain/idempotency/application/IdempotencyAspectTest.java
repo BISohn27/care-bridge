@@ -1,9 +1,9 @@
-package com.donation.carebridge.donation.domain.payment.application;
+package com.donation.carebridge.common.domain.idempotency.application;
 
-import com.donation.carebridge.donation.domain.payment.annotation.IdempotencyCheck;
-import com.donation.carebridge.donation.domain.payment.exception.PaymentException;
-import com.donation.carebridge.donation.domain.payment.model.IdempotencyKeyed;
-import com.donation.carebridge.donation.domain.payment.application.out.IdempotencyRepository;
+import com.donation.carebridge.common.domain.idempotency.annotation.IdempotencyCheck;
+import com.donation.carebridge.common.domain.idempotency.exception.IdempotencyException;
+import com.donation.carebridge.common.domain.idempotency.model.IdempotencyKeyed;
+import com.donation.carebridge.common.domain.idempotency.application.out.IdempotencyRepository;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.junit.jupiter.api.BeforeEach;
@@ -74,7 +74,7 @@ class IdempotencyAspectTest {
                 .thenReturn(false);
 
         assertThatThrownBy(() -> testPaymentService.processPayment(request))
-                .isInstanceOf(PaymentException.class);
+                .isInstanceOf(IdempotencyException.class);
 
         verify(idempotencyRepository).reserveIdempotencyKey("payment", paymentId);
         verify(idempotencyRepository, never()).completeIdempotencyKey(anyString(), anyString());
