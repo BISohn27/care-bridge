@@ -5,8 +5,9 @@ rootProject.name = "care-bridge"
 
 include(
     "common:common-domain",
+    "common:common-infrastructure",
     "donation:donation-domain",
-    "donation:infrastructure",
+    "donation:donation-infrastructure",
     "donation:web-api",
     "donation:donation-batch",
     "donation:donation-producer",
@@ -15,8 +16,10 @@ include(
 )
 
 project(":common:common-domain").projectDir = file("common/domain")
+project(":common:common-infrastructure").projectDir = file("common/infrastructure")
 project(":donation:donation-domain").projectDir = file("donation/domain")
 project(":donationcase:donationcase-domain").projectDir = file("donationcase/domain")
 project(":donation:donation-batch").projectDir = file("donation/batch")
 project(":donation:donation-producer").projectDir = file("donation/producer")
 project(":donation:donation-consumer").projectDir = file("donation/consumer")
+project(":donation:donation-infrastructure").projectDir = file("donation/infrastructure")
