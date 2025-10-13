@@ -2,7 +2,7 @@ package com.donation.carebridge.common.domain.idempotency.application;
 
 import com.donation.carebridge.common.domain.idempotency.annotation.IdempotencyCheck;
 import com.donation.carebridge.common.domain.idempotency.exception.IdempotencyException;
-import com.donation.carebridge.common.domain.idempotency.model.IdempotencyKeyed;
+import com.donation.carebridge.common.domain.idempotency.model.DuplicateCheckKeyed;
 import com.donation.carebridge.common.domain.idempotency.application.out.IdempotencyRepository;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -160,23 +160,23 @@ class IdempotencyAspectTest {
 
     @Getter
     @AllArgsConstructor
-    static class TestPaymentRequest implements IdempotencyKeyed {
+    static class TestPaymentRequest implements DuplicateCheckKeyed {
         private String paymentId;
         private Long amount;
 
         @Override
-        public String idempotencyKey() {
+        public String duplicateCheckKey() {
             return paymentId;
         }
     }
 
     @Getter
     @AllArgsConstructor
-    static class TestRefundRequest implements IdempotencyKeyed {
+    static class TestRefundRequest implements DuplicateCheckKeyed {
         private String refundId;
 
         @Override
-        public String idempotencyKey() {
+        public String duplicateCheckKey() {
             return refundId;
         }
     }

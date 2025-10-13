@@ -3,7 +3,7 @@ package com.donation.carebridge.common.domain.idempotency.application;
 import com.donation.carebridge.common.domain.idempotency.annotation.IdempotencyCheck;
 import com.donation.carebridge.common.domain.idempotency.application.out.IdempotencyRepository;
 import com.donation.carebridge.common.domain.idempotency.exception.IdempotencyException;
-import com.donation.carebridge.common.domain.idempotency.model.IdempotencyKeyed;
+import com.donation.carebridge.common.domain.idempotency.model.DuplicateCheckKeyed;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -25,14 +25,14 @@ public class IdempotencyAspect {
     @Around("@annotation(idempotencyCheck)")
     public Object handleIdempotencyRequest(ProceedingJoinPoint joinPoint, IdempotencyCheck idempotencyCheck)
             throws Throwable {
-        IdempotencyKeyed idempotencyKeyed = findIdempotencyKey(joinPoint.getArgs());
+        DuplicateCheckKeyed duplicateCheckKeyed = findIdempotencyKey(joinPoint.getArgs());
 
-        if (idempotencyKeyed == null) {
+        if (duplicateCheckKeyed == null) {
             log.debug("The object does not implement the IdempotencyKeyed interface");
             return joinPoint.proceed();
         }
 
-        String idempotencyKey = idempotencyKeyed.idempotencyKey();
+        String idempotencyKey = duplicateCheckKeyed.duplicateCheckKey();
 
         if (!StringUtils.hasText(idempotencyKey)) {
             log.debug("The idempotency key is empty");
@@ -55,10 +55,10 @@ public class IdempotencyAspect {
         }
     }
 
-    private IdempotencyKeyed findIdempotencyKey(Object[] args) {
+    private DuplicateCheckKeyed findIdempotencyKey(Object[] args) {
         return Stream.of(args)
-                .filter(arg -> arg instanceof IdempotencyKeyed)
-                .map(arg -> (IdempotencyKeyed) arg)
+                .filter(arg -> arg instanceof DuplicateCheckKeyed)
+                .map(arg -> (DuplicateCheckKeyed) arg)
                 .findFirst()
                 .orElse(null);
     }
