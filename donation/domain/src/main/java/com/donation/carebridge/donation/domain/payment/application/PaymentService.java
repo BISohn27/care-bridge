@@ -1,6 +1,6 @@
 package com.donation.carebridge.donation.domain.payment.application;
 
-import com.donation.carebridge.donation.domain.payment.annotation.IdempotencyCheck;
+import com.donation.carebridge.common.domain.idempotency.annotation.IdempotencyCheck;
 import com.donation.carebridge.donation.domain.payment.config.PaymentUrlProperties;
 import com.donation.carebridge.donation.domain.payment.dto.ConfirmPaymentCommand;
 import com.donation.carebridge.donation.domain.payment.dto.ConfirmPaymentRequest;

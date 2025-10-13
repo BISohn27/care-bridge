@@ -1,4 +1,4 @@
-package com.donation.carebridge.donation.domain.payment.model;
+package com.donation.carebridge.common.domain.idempotency.model;
 
 public interface IdempotencyKeyed {
 

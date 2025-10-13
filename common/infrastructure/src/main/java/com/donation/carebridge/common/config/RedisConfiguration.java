@@ -1,4 +1,4 @@
-package com.donation.carebridge.donation.infrastructure.payment.config;
+package com.donation.carebridge.common.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

@@ -1,9 +1,9 @@
-package com.donation.carebridge.donation.domain.payment.application;
+package com.donation.carebridge.common.domain.idempotency.application;
 
-import com.donation.carebridge.donation.domain.payment.annotation.IdempotencyCheck;
-import com.donation.carebridge.donation.domain.payment.exception.PaymentException;
-import com.donation.carebridge.donation.domain.payment.model.IdempotencyKeyed;
-import com.donation.carebridge.donation.domain.payment.application.out.IdempotencyRepository;
+import com.donation.carebridge.common.domain.idempotency.annotation.IdempotencyCheck;
+import com.donation.carebridge.common.domain.idempotency.application.out.IdempotencyRepository;
+import com.donation.carebridge.common.domain.idempotency.exception.IdempotencyException;
+import com.donation.carebridge.common.domain.idempotency.model.IdempotencyKeyed;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -41,7 +41,7 @@ public class IdempotencyAspect {
 
         String prefix = idempotencyCheck.prefix();
         if (!idempotencyRepository.reserveIdempotencyKey(prefix, idempotencyKey)) {
-            throw new PaymentException("DUPLICATE_REQUEST",
+            throw new IdempotencyException("DUPLICATE_REQUEST",
                     "The request has been executed already: " + idempotencyKey);
         }
 

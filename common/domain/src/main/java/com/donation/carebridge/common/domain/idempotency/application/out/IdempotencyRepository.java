@@ -1,4 +1,4 @@
-package com.donation.carebridge.donation.domain.payment.application.out;
+package com.donation.carebridge.common.domain.idempotency.application.out;
 
 public interface IdempotencyRepository {
 

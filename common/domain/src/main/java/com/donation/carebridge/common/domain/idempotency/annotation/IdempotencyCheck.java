@@ -1,4 +1,4 @@
-package com.donation.carebridge.donation.domain.payment.annotation;
+package com.donation.carebridge.common.domain.idempotency.annotation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

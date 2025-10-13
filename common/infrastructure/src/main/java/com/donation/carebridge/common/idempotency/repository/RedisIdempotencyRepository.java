@@ -1,6 +1,6 @@
-package com.donation.carebridge.donation.infrastructure.payment.repository;
+package com.donation.carebridge.common.idempotency.repository;
 
-import com.donation.carebridge.donation.domain.payment.application.out.IdempotencyRepository;
+import com.donation.carebridge.common.domain.idempotency.application.out.IdempotencyRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
