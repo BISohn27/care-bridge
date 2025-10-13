@@ -1,5 +1,6 @@
 package com.donation.carebridge.donation.domain.donation.application;
 
+import com.donation.carebridge.common.domain.idempotency.annotation.IdempotencyCheck;
 import com.donation.carebridge.donation.domain.donation.application.in.DonationCanceller;
 import com.donation.carebridge.donation.domain.donation.application.in.DonationCompleter;
 import com.donation.carebridge.donation.domain.donation.application.in.DonationExpirator;
@@ -37,6 +38,7 @@ public class DonationService implements DonationRegister, DonationCompleter, Don
     private final DonationTransactionService donationTransactionService;
 
     @Override
+    @IdempotencyCheck(prefix = "donation-register")
     public DonationRegisterResult register(DonationRegisterCommand registerCommand) {
         DonationCase donationCase = donationCaseFinder.find(registerCommand.donationCaseId());
 
