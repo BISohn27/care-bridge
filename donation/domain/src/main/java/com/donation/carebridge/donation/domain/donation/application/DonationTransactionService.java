@@ -48,11 +48,19 @@ class DonationTransactionService {
     }
 
     @Transactional
-    List<Donation> expireDonations(LocalDateTime expiredTime) {
-        List<Donation> expiredDonations = donationRepository.findExpired(expiredTime);
-        if  (!expiredDonations.isEmpty()) {
-            expiredDonations.forEach(Donation::expire);
+    List<Donation> expireDonations(LocalDateTime expireThreshold, int batchSize, String lastProcessedId, LocalDateTime lastProcessedTime) {
+        List<Donation> expiredDonations = donationRepository.findExpired(expireThreshold, batchSize, lastProcessedId, lastProcessedTime);
+        return expireDonations(expiredDonations);
+    }
+
+    private List<Donation> expireDonations(List<Donation> expiredDonations) {
+        if (expiredDonations.isEmpty()) {
+            return expiredDonations;
         }
-        return expiredDonations;
+
+        List<String> donationIds = expiredDonations.stream()
+                .map(Donation::getId)
+                .toList();
+        return donationRepository.expireAndRefresh(donationIds);
     }
 }

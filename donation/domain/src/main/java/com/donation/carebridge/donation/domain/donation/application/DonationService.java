@@ -17,19 +17,17 @@ import com.donation.carebridge.donation.domain.payment.application.in.PaymentIni
 import com.donation.carebridge.donation.domain.payment.dto.CreatePaymentRequest;
 import com.donation.carebridge.donation.domain.payment.dto.CreatePaymentResult;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class DonationService implements DonationRegister, DonationCompleter, DonationCanceller, DonationExpirator {
-
-    @Value("${care-bridge.donation.timeout-seconds:3600}")
-    private long expiredSeconds;
 
     private final DonationRepository donationRepository;
     private final DonationCaseFinder donationCaseFinder;
@@ -104,14 +102,35 @@ public class DonationService implements DonationRegister, DonationCompleter, Don
     }
 
     @Override
-    public void expire() {
-        List<Donation> expiredDonations = donationTransactionService.expireDonations(
-                LocalDateTime.now().minusSeconds(expiredSeconds));
+    public void expire(LocalDateTime expireThreshold, int batchSize) {
+        String lastProcessedId = null;
+        LocalDateTime lastProcessedTime = null;
+        while (true) {
+            List<Donation> expiredDonations = donationTransactionService.expireDonations(
+                    expireThreshold, batchSize, lastProcessedId, lastProcessedTime);
 
-        if (!expiredDonations.isEmpty()) {
-            expiredDonations.forEach(donation -> {
-                quotaManager.release(donation.getDonationCase().getId(), donation.getAmount());
-            });
+            if (expiredDonations.isEmpty()) {
+                break;
+            }
+
+            releaseReserved(expiredDonations);
+
+            int currentSize = expiredDonations.size();
+            if (currentSize < batchSize) {
+                break;
+            }
+            Donation lastProcessed = expiredDonations.get(currentSize - 1);
+            lastProcessedId = lastProcessed.getId();
+            lastProcessedTime = lastProcessed.getCreatedAt();
         }
+    }
+
+    private void releaseReserved(List<Donation> expiredDonations) {
+        Map<String, Long> reserved = expiredDonations.stream()
+                .collect(Collectors.groupingBy(
+                        donation -> donation.getDonationCase().getId(),
+                        Collectors.summingLong(Donation::getAmount)
+                ));
+        quotaManager.releaseMultiple(reserved);
     }
 }

@@ -7,6 +7,8 @@ import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Component;
 
 import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 @Component
 @RequiredArgsConstructor
@@ -75,5 +77,35 @@ public class RedisDonationQuotaManager implements DonationQuotaManager {
         String quotaKey = QUOTA_KEY_PREFIX + donationCaseId;
 
         redisTemplate.opsForHash().increment(quotaKey, "reserved", -amount);
+    }
+
+    @Override
+    public void releaseMultiple(Map<String, Long> releaseMap) {
+        if (releaseMap.isEmpty()) {
+            return;
+        }
+
+        String luaScript = """
+            for i = 1, #KEYS do
+                local quotaKey = KEYS[i]
+                local amount = tonumber(ARGV[i])
+                redis.call('HINCRBY', quotaKey, 'reserved', -amount)
+            end
+            return 1
+            """;
+
+        List<String> keys = releaseMap.keySet().stream()
+            .map(caseId -> QUOTA_KEY_PREFIX + caseId)
+            .toList();
+
+        String[] amounts = releaseMap.values().stream()
+            .map(String::valueOf)
+            .toArray(String[]::new);
+
+        redisTemplate.execute(
+            new DefaultRedisScript<>(luaScript, Long.class),
+            keys,
+            amounts
+        );
     }
 }

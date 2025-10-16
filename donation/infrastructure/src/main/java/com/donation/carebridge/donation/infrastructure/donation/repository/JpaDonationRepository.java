@@ -3,6 +3,7 @@ package com.donation.carebridge.donation.infrastructure.donation.repository;
 import com.donation.carebridge.donation.domain.donation.application.out.DonationRepository;
 import com.donation.carebridge.donation.domain.donation.model.Donation;
 import com.donation.carebridge.donation.domain.donation.model.DonationStatus;
+import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -14,6 +15,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class JpaDonationRepository implements DonationRepository {
 
+    private final EntityManager entityManager;
     private final SpringDataDonationRepository dataRepository;
 
     @Override
@@ -37,7 +39,17 @@ public class JpaDonationRepository implements DonationRepository {
     }
 
     @Override
-    public List<Donation> findExpired(LocalDateTime expiredDateTime) {
-        return dataRepository.findAllByCreatedAtLessThanAndStatus(expiredDateTime, DonationStatus.PENDING);
+    public List<Donation> findExpired(LocalDateTime expiredDateTime, int batchSize, String nextCursor, LocalDateTime cursorTime) {
+        if (nextCursor == null && cursorTime == null) {
+            return dataRepository.findExpiredFirst(expiredDateTime, batchSize);
+        }
+        return dataRepository.findExpiredWithCursor(expiredDateTime, cursorTime, nextCursor, batchSize);
+    }
+
+    @Override
+    public List<Donation> expireAndRefresh(List<String> donationIds) {
+        dataRepository.updateExpired(donationIds);
+        entityManager.clear();
+        return dataRepository.findAllById(donationIds);
     }
 }
