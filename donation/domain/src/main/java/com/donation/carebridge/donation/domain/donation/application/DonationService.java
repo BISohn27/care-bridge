@@ -1,5 +1,6 @@
 package com.donation.carebridge.donation.domain.donation.application;
 
+import com.donation.carebridge.common.domain.common.application.out.TransactionExecutor;
 import com.donation.carebridge.common.domain.idempotency.annotation.IdempotencyCheck;
 import com.donation.carebridge.donation.domain.donation.application.in.DonationCanceller;
 import com.donation.carebridge.donation.domain.donation.application.in.DonationCompleter;
@@ -29,6 +30,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class DonationService implements DonationRegister, DonationCompleter, DonationCanceller, DonationExpirator {
 
+    private final TransactionExecutor transactionExecutor;
     private final DonationRepository donationRepository;
     private final DonationCaseFinder donationCaseFinder;
     private final DonationQuotaManager quotaManager;

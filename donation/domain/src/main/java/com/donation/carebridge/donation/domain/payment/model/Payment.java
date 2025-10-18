@@ -1,6 +1,6 @@
 package com.donation.carebridge.donation.domain.payment.model;
 
-import com.donation.carebridge.common.domain.UUIDBaseTimeEntity;
+import com.donation.carebridge.common.domain.common.application.model.UUIDBaseTimeEntity;
 import com.donation.carebridge.donation.domain.payment.exception.PaymentException;
 import com.donation.carebridge.donation.domain.pg.model.PgProvider;
 import com.donation.carebridge.donation.domain.pg.model.PgProviderCode;

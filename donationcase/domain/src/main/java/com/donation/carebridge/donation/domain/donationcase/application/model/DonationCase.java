@@ -1,6 +1,6 @@
 package com.donation.carebridge.donation.domain.donationcase.application.model;
 
-import com.donation.carebridge.common.domain.UUIDBaseTimeEntity;
+import com.donation.carebridge.common.domain.common.application.model.UUIDBaseTimeEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;

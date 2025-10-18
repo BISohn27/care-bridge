@@ -1,4 +1,4 @@
-package com.donation.carebridge.common.domain;
+package com.donation.carebridge.common.domain.common.application.model;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.EntityListeners;

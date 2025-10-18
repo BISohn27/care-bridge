@@ -1,4 +1,4 @@
-package com.donation.carebridge.common.idempotency.repository;
+package com.donation.carebridge.common.infrastructure.idempotency.repository;
 
 import com.donation.carebridge.common.domain.idempotency.application.out.IdempotencyRepository;
 import lombok.RequiredArgsConstructor;
