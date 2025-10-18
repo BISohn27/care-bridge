@@ -10,7 +10,7 @@ import org.springframework.transaction.support.DefaultTransactionDefinition;
 import java.util.function.Supplier;
 
 @RequiredArgsConstructor
-public class DatabaseTransactionExecutor implements TransactionExecutor {
+public class JpaTransactionExecutor implements TransactionExecutor {
 
     private final PlatformTransactionManager transactionManager;
 
