@@ -47,9 +47,7 @@ public class JpaDonationRepository implements DonationRepository {
     }
 
     @Override
-    public List<Donation> expireAndRefresh(List<String> donationIds) {
-        dataRepository.updateExpired(donationIds);
-        entityManager.clear();
+    public List<Donation> findAll(List<String> donationIds) {
         return dataRepository.findAllById(donationIds);
     }
 }

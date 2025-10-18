@@ -19,6 +19,7 @@ public interface SpringDataDonationRepository extends JpaRepository<Donation, St
 
     @Query("""
         SELECT d FROM Donation d
+        JOIN FETCH d.donationCase
         WHERE d.status = 'PENDING'
             AND d.createdAt < :threshold
         ORDER BY d.createdAt ASC, d.id ASC
@@ -28,6 +29,7 @@ public interface SpringDataDonationRepository extends JpaRepository<Donation, St
 
     @Query("""
         SELECT d FROM Donation d
+        JOIN FETCH d.donationCase
         WHERE d.status = 'PENDING'
             AND d.createdAt < :threshold
             AND (

@@ -1,8 +1,9 @@
 package com.donation.carebridge.donation.domain.donation.application.in;
 
-import java.time.LocalDateTime;
+import java.util.List;
 
 public interface DonationExpirator {
 
-    void expire(LocalDateTime expireThreshold, int batchSize);
+    void expire(String donationId);
+    void expireAll(List<String> donationIds);
 }

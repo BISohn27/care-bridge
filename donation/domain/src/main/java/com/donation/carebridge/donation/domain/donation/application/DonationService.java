@@ -20,7 +20,6 @@ import com.donation.carebridge.donation.domain.payment.dto.CreatePaymentResult;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -35,7 +34,6 @@ public class DonationService implements DonationRegister, DonationCompleter, Don
     private final DonationCaseFinder donationCaseFinder;
     private final DonationQuotaManager quotaManager;
     private final PaymentInitiator paymentInitiator;
-    private final DonationTransactionService donationTransactionService;
 
     @Override
     @IdempotencyCheck(prefix = "donation-register")
@@ -67,7 +65,15 @@ public class DonationService implements DonationRegister, DonationCompleter, Don
     private Donation processDonation(DonationRegisterCommand registerCommand, DonationCase donationCase) {
         try {
             quotaManager.reserve(registerCommand.donationCaseId(), registerCommand.amount());
-            return donationTransactionService.saveDonation(registerCommand, donationCase);
+            return transactionExecutor.executeInTransaction(() -> {
+                Donation donation = Donation.create(
+                        donationCase,
+                        registerCommand.donorId(),
+                        registerCommand.amount(),
+                        registerCommand.currency());
+                donation = donationRepository.save(donation);
+                return donation;
+            });
         } catch (Exception e) {
             quotaManager.release(registerCommand.donationCaseId(), registerCommand.amount());
             throw e;
@@ -93,38 +99,48 @@ public class DonationService implements DonationRegister, DonationCompleter, Don
 
     @Override
     public void complete(String donationId) {
-        Donation completed = donationTransactionService.completeDonation(donationId);
+        Donation completed = transactionExecutor.executeInTransaction(() -> {
+            Donation donation = getDonationWithCase(donationId);
+            donation.complete();
+            return donation;
+        });
         quotaManager.confirm(completed.getDonationCase().getId(), completed.getAmount());
+    }
+
+    private Donation getDonationWithCase(String donationId) {
+        return donationRepository.findWithCase(donationId)
+                .orElseThrow(() -> new IllegalArgumentException("Donation not found"));
     }
 
     @Override
     public void cancel(String donationId) {
-        Donation cancelled = donationTransactionService.cancelDonation(donationId);
+        Donation cancelled = transactionExecutor.executeInTransaction(() -> {
+            Donation donation = getDonationWithCase(donationId);
+            donation.cancel();
+            return donation;
+        });
         quotaManager.release(cancelled.getDonationCase().getId(), cancelled.getAmount());
     }
 
     @Override
-    public void expire(LocalDateTime expireThreshold, int batchSize) {
-        String lastProcessedId = null;
-        LocalDateTime lastProcessedTime = null;
-        while (true) {
-            List<Donation> expiredDonations = donationTransactionService.expireDonations(
-                    expireThreshold, batchSize, lastProcessedId, lastProcessedTime);
+    public void expire(String donationId) {
+        Donation donation = getDonationWithCase(donationId);
+        transactionExecutor.executeInTransaction(donation::expire);
+        quotaManager.release(donation.getDonationCase().getId(), donation.getAmount());
+    }
 
-            if (expiredDonations.isEmpty()) {
-                break;
-            }
-
-            releaseReserved(expiredDonations);
-
-            int currentSize = expiredDonations.size();
-            if (currentSize < batchSize) {
-                break;
-            }
-            Donation lastProcessed = expiredDonations.get(currentSize - 1);
-            lastProcessedId = lastProcessed.getId();
-            lastProcessedTime = lastProcessed.getCreatedAt();
+    @Override
+    public void expireAll(List<String> donationIds) {
+        if (donationIds.isEmpty()) {
+            return;
         }
+
+        List<Donation> expiredDonations = transactionExecutor.executeInTransaction(() -> {
+            List<Donation> donations = donationRepository.findAll(donationIds);
+            donations.forEach(Donation::expire);
+            return donations;
+        });
+        releaseReserved(expiredDonations);
     }
 
     private void releaseReserved(List<Donation> expiredDonations) {

@@ -1,6 +1,6 @@
 package com.donation.carebridge.donation.batch;
 
-import com.donation.carebridge.donation.domain.donation.application.in.DonationExpirator;
+import com.donation.carebridge.donation.domain.donation.application.in.DonationBatchExpirator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -18,11 +18,11 @@ public class DonationExpirationScheduler {
     @Value("${care-bridge.donation.expire.batch-size:1000}")
     private int batchSize;
 
-    private final DonationExpirator expirator;
+    private final DonationBatchExpirator batchExpirator;
 
     @Scheduled(fixedDelayString = "${care-bridge.donation.expiration-check-interval.ms:10000}")
     public void scheduledTask() {
         LocalDateTime expireThreshold = LocalDateTime.now().plusSeconds(expiredSeconds);
-        expirator.expire(expireThreshold, batchSize);
+        batchExpirator.expireBatch(expireThreshold, batchSize);
     }
 }

@@ -14,6 +14,6 @@ public interface DonationRepository {
     Optional<Donation> find(String donationId);
     Optional<Donation> findWithCase(String donationId);
     Optional<Donation> find(String caseId, String donorId, DonationStatus status);
+    List<Donation> findAll(List<String> donationIds);
     List<Donation> findExpired(LocalDateTime expireThreshold, int batchSize, @Nullable String nextCursor, @Nullable LocalDateTime cursorTime);
-    List<Donation> expireAndRefresh(List<String> donationIds);
 }
