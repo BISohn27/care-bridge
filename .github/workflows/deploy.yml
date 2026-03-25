@@ -35,10 +35,6 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 60
     environment: ${{ github.event_name == 'workflow_dispatch' && inputs.environment || (startsWith(github.ref_name, 'feature/') && 'dev' || github.ref_name) }}
-    env:
-      AWS_REGION: ${{ vars.AWS_REGION }}
-      ECR_REGISTRY: ${{ vars.ECR_REGISTRY }}
-      ECR_REPOSITORY_NAME: ${{ vars.ECR_REPOSITORY_NAME }}
 
     steps:
       - name: Resolve deploy target
@@ -85,7 +81,7 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
-          aws-region: ${{ env.AWS_REGION }}
+          aws-region: ${{ vars.AWS_REGION }}
 
       - name: Verify required tools
         shell: bash
@@ -98,6 +94,10 @@ jobs:
 
       - name: Run ECS deploy script
         shell: bash
+        env:
+          AWS_REGION: ${{ vars.AWS_REGION }}
+          ECR_REGISTRY: ${{ vars.ECR_REGISTRY }}
+          ECR_REPOSITORY_NAME: ${{ vars.ECR_REPOSITORY_NAME }}
         run: |
           set -euo pipefail
           chmod +x scripts/deploy/setup_api.sh
