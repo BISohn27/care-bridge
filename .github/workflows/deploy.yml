@@ -39,30 +39,19 @@ jobs:
     steps:
       - name: Resolve deploy target
         id: target
-        shell: bash
         run: |
-          set -euo pipefail
-
           if [[ "${GITHUB_EVENT_NAME}" == "workflow_dispatch" ]]; then
-            DEPLOY_ENV="${{ inputs.environment }}"
-            DEPLOY_BRANCH="${{ inputs.branch }}"
+            echo "environment=${{ inputs.environment }}" >> "${GITHUB_OUTPUT}"
+            echo "branch=${{ inputs.branch }}" >> "${GITHUB_OUTPUT}"
           else
-            DEPLOY_BRANCH="${GITHUB_REF_NAME}"
-            if [[ "${DEPLOY_BRANCH}" == feature/* ]]; then
-              DEPLOY_ENV="dev"
-            else
-              DEPLOY_ENV="${DEPLOY_BRANCH}"
-            fi
+            BRANCH="${GITHUB_REF_NAME}"
+            ENV=$([[ "${BRANCH}" == feature/* ]] && echo "dev" || echo "${BRANCH}")
+            echo "environment=${ENV}" >> "${GITHUB_OUTPUT}"
+            echo "branch=${BRANCH}" >> "${GITHUB_OUTPUT}"
           fi
 
-          echo "environment=${DEPLOY_ENV}" >> "${GITHUB_OUTPUT}"
-          echo "branch=${DEPLOY_BRANCH}" >> "${GITHUB_OUTPUT}"
-
-          echo "Deploy environment: ${DEPLOY_ENV}"
-          echo "Deploy branch: ${DEPLOY_BRANCH}"
-
-      - name: Checkout application repository
-        uses: actions/checkout@v6
+      - name: Checkout
+        uses: actions/checkout@v4
         with:
           ref: ${{ steps.target.outputs.branch }}
 
@@ -74,8 +63,6 @@ jobs:
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v5
-        with:
-          cache-read-only: false
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -83,23 +70,12 @@ jobs:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
           aws-region: ${{ vars.AWS_REGION }}
 
-      - name: Verify required tools
-        shell: bash
-        run: |
-          set -euo pipefail
-          command -v aws
-          command -v jq
-          command -v docker
-          command -v git
-
       - name: Run ECS deploy script
-        shell: bash
         env:
           AWS_REGION: ${{ vars.AWS_REGION }}
           ECR_REGISTRY: ${{ vars.ECR_REGISTRY }}
           ECR_REPOSITORY_NAME: ${{ vars.ECR_REPOSITORY_NAME }}
         run: |
-          set -euo pipefail
           chmod +x scripts/deploy/setup_api.sh
           bash scripts/deploy/setup_api.sh \
             "${{ steps.target.outputs.environment }}" \
